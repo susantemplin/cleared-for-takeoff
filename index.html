@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cleared for Takeoff — Airline Interview Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F8FB;--card:#FFFFFF;--ink:#14304F;--ink2:#4B5E75;--line:#D8E0EA;
+  --yellow:#F2B90C;--sky:#3E7CB1;--green:#2F8F5B;--red:#B83A2E;--tint:#EAF1F8;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0F1B2A;--card:#16263A;--ink:#E8EEF5;--ink2:#A9B8C9;--line:#2A3D55;--tint:#1B2F47;--sky:#6FA6D6;--green:#4DB27B;--red:#E0705F;}}
+:root[data-theme="dark"]{--paper:#0F1B2A;--card:#16263A;--ink:#E8EEF5;--ink2:#A9B8C9;--line:#2A3D55;--tint:#1B2F47;--sky:#6FA6D6;--green:#4DB27B;--red:#E0705F;}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.55 Barlow,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+h1,h2,h3,.cond{font-family:"Barlow Condensed","Arial Narrow",Barlow,sans-serif;letter-spacing:.2px}
+.wrap{max-width:640px;margin:0 auto;padding:16px 16px 40px}
+button,select,textarea,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+
+/* boarding pass header */
+.pass{display:flex;background:var(--ink);color:#fff;border-radius:14px;overflow:hidden;position:relative}
+:root[data-theme="dark"] .pass{background:#0A1420}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pass{background:#0A1420}}
+.pass-main{flex:1;padding:18px 18px 16px;min-width:0}
+.pass h1{margin:0;font-size:34px;line-height:1;font-weight:700}
+.pass p{margin:6px 0 0;color:#C9D6E4;font-size:15px}
+.pass-stub{width:108px;flex:none;border-left:2px dashed rgba(255,255,255,.35);padding:14px 12px;display:flex;flex-direction:column;justify-content:center;gap:8px;background:rgba(242,185,12,.12)}
+.stub-row{line-height:1.1}
+.stub-k{font-size:12px;color:#C9D6E4}
+.stub-v{font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:700;color:var(--yellow)}
+.pass::before,.pass::after{content:"";position:absolute;right:99px;width:18px;height:18px;border-radius:50%;background:var(--paper)}
+.pass::before{top:-9px}.pass::after{bottom:-9px}
+
+.role{margin:16px 0 4px}
+.role label{display:block;font-weight:600;font-size:15px;margin-bottom:6px}
+.role select{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--card)}
+
+nav.tabs{display:flex;gap:6px;margin:18px 0 14px;border-bottom:2px solid var(--line)}
+nav.tabs button{flex:1;background:none;border:0;padding:10px 4px 12px;font-family:"Barlow Condensed",sans-serif;font-size:20px;font-weight:600;color:var(--ink2);border-bottom:4px solid transparent;margin-bottom:-2px}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--yellow)}
+
+/* flight strip question card */
+.strip{background:var(--card);border:1.5px solid var(--line);border-left:10px solid var(--yellow);border-radius:10px;padding:14px 16px}
+.strip .meta{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--ink2)}
+.strip h2{margin:6px 0 0;font-size:26px;line-height:1.15;font-weight:600}
+.hint{margin-top:10px;font-size:15px;color:var(--ink2)}
+.hint summary{cursor:pointer;color:var(--sky);font-weight:600}
+textarea{width:100%;min-height:150px;margin-top:12px;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);resize:vertical;line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.btn{border:0;border-radius:10px;padding:13px 18px;font-weight:600;font-size:17px}
+.btn-go{background:var(--ink);color:#fff;flex:1}
+:root[data-theme="dark"] .btn-go{background:var(--yellow);color:#14304F}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn-go{background:var(--yellow);color:#14304F}}
+.btn-plain{background:var(--tint);color:var(--ink)}
+.btn[disabled]{opacity:.55;cursor:default}
+.small{font-size:14px;color:var(--ink2)}
+
+.feedback{margin-top:16px;background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:16px}
+.score{display:flex;align-items:center;gap:12px}
+.lights{display:flex;gap:6px}
+.lights i{width:16px;height:16px;border-radius:50%;background:var(--line)}
+.lights i.on{background:var(--green)}
+.score b{font-family:"Barlow Condensed",sans-serif;font-size:22px}
+.star{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0}
+.star div{text-align:center;padding:8px 2px;border-radius:8px;background:var(--tint);font-size:14px;line-height:1.2}
+.star div.ok{background:rgba(47,143,91,.15);color:var(--green);font-weight:600}
+.star div.miss{background:rgba(184,58,46,.1);color:var(--red)}
+.feedback h3{margin:14px 0 4px;font-size:20px}
+.feedback ul{margin:4px 0;padding-left:20px}
+.feedback p{margin:4px 0}
+.better{background:var(--tint);border-radius:8px;padding:12px 14px;white-space:pre-wrap}
+.err{margin-top:12px;padding:10px 14px;border-radius:8px;background:rgba(184,58,46,.1);color:var(--red)}
+.thinking{margin-top:14px;color:var(--ink2);font-style:italic}
+
+/* stories */
+.field{margin-top:12px}
+.field label{display:block;font-weight:600}
+.field .small{display:block;margin-bottom:4px}
+.field input,.field textarea{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);min-height:0;margin-top:4px}
+.field textarea{min-height:76px}
+.story{background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;margin-top:12px}
+.story h3{margin:0 0 6px;font-size:21px}
+.story .polished{white-space:pre-wrap;margin-top:8px;background:var(--tint);border-radius:8px;padding:10px 12px}
+.linkbtn{background:none;border:0;color:var(--sky);font-weight:600;padding:6px 0;margin-right:16px}
+.linkbtn.danger{color:var(--red)}
+.empty{padding:18px;border:2px dashed var(--line);border-radius:10px;text-align:center;color:var(--ink2);margin-top:12px}
+
+/* tips */
+.tip{border-top:1.5px solid var(--line);padding:14px 0}
+.tip:first-of-type{border-top:0}
+.tip h3{margin:0 0 4px;font-size:22px}
+.tip p{margin:0}
+.section-h{font-size:24px;margin:22px 0 4px}
+footer{margin-top:28px;font-size:13px;color:var(--ink2);text-align:center}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:no-preference){.feedback{animation:rise .25s ease-out}@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="pass">
+    <div class="pass-main">
+      <h1>Cleared for Takeoff</h1>
+      <p>Airline interview coach, built by someone who works the gate.</p>
+    </div>
+    <div class="pass-stub" aria-label="Your progress">
+      <div class="stub-row"><div class="stub-k">Answered</div><div class="stub-v" id="statAnswered">0</div></div>
+      <div class="stub-row"><div class="stub-k">Stories</div><div class="stub-v" id="statStories">0</div></div>
+    </div>
+  </header>
+
+  <div class="role">
+    <label for="roleSel">The job you're going for</label>
+    <select id="roleSel">
+      <option value="fa">Flight attendant</option>
+      <option value="gate">Gate &amp; ticket agent</option>
+      <option value="ramp">Ramp agent</option>
+      <option value="res">Reservations &amp; customer care</option>
+    </select>
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="t-practice" aria-selected="true" data-tab="practice">Practice</button>
+    <button role="tab" id="t-stories" aria-selected="false" data-tab="stories">My stories</button>
+    <button role="tab" id="t-tips" aria-selected="false" data-tab="tips">Insider tips</button>
+  </nav>
+
+  <!-- PRACTICE -->
+  <section id="p-practice" role="tabpanel">
+    <div class="strip">
+      <div class="meta"><span id="qKind">Behavioral</span><span id="qCount">Question 1</span></div>
+      <h2 id="qText">Loading…</h2>
+      <details class="hint"><summary>What they're listening for</summary><p id="qTip" style="margin:6px 0 0"></p></details>
+    </div>
+    <label for="answer" class="small" style="display:block;margin-top:12px">Type your answer the way you'd say it out loud. On a phone, tap the mic on your keyboard to talk it instead.</label>
+    <textarea id="answer" placeholder="One time at work…"></textarea>
+    <div class="row">
+      <button class="btn btn-go" id="btnFeedback">Get feedback</button>
+      <button class="btn btn-plain" id="btnNext">Next question</button>
+    </div>
+    <div id="thinking" class="thinking" hidden>Reviewing your answer… this can take up to a minute.</div>
+    <div id="fbError" class="err" hidden></div>
+    <div id="feedback" class="feedback" hidden></div>
+  </section>
+
+  <!-- STORIES -->
+  <section id="p-stories" role="tabpanel" hidden>
+    <p style="margin:0">Interviewers ask for real examples. Build a few strong stories once, and you can bend them to fit almost any question.</p>
+    <div class="field"><label for="sTitle">Name this story</label><input id="sTitle" placeholder="The delayed flight with 40 missed connections"></div>
+    <div class="field"><label for="sS">Situation</label><span class="small">Where were you and what was going on?</span><textarea id="sS"></textarea></div>
+    <div class="field"><label for="sT">Task</label><span class="small">What was your job in that moment?</span><textarea id="sT"></textarea></div>
+    <div class="field"><label for="sA">Action</label><span class="small">What did you do, step by step? Say "I," not "we."</span><textarea id="sA"></textarea></div>
+    <div class="field"><label for="sR">Result</label><span class="small">How did it end? Numbers help: minutes saved, people rebooked, a thank-you.</span><textarea id="sR"></textarea></div>
+    <div class="row"><button class="btn btn-go" id="btnSaveStory">Save story</button></div>
+    <div id="storyMsg" class="err" hidden></div>
+    <h2 class="section-h">Saved stories</h2>
+    <div id="storyList"></div>
+  </section>
+
+  <!-- TIPS -->
+  <section id="p-tips" role="tabpanel" hidden>
+    <div id="tipsRole"></div>
+    <h2 class="section-h">Interview day, any role</h2>
+    <div id="tipsGeneral"></div>
+  </section>
+
+  <footer>Practice tool only. Every airline runs its own hiring process, so check the job posting for exact requirements.</footer>
+</div>
+
+<script>
+(function(){
+'use strict';
+var ROLES={fa:'Flight attendant',gate:'Gate & ticket agent',ramp:'Ramp agent',res:'Reservations & customer care'};
+var Q={
+ fa:[
+  ['Behavioral','Tell me about a time you handled an upset customer.','Calm, empathy, and that you solved it without giving away the store. Show you listened first.'],
+  ['Behavioral','Describe a time you had to enforce a rule someone didn\u2019t like.','Firm but kind. Safety rules aren\u2019t optional, and they want to see you hold the line politely.'],
+  ['Situational','A passenger refuses to put their bag in the overhead bin before takeoff. What do you do?','Safety first, a clear and respectful ask, a solution offered, and knowing when to bring in the lead.'],
+  ['Behavioral','Tell me about a time you worked with a team under pressure.','Teamwork on a crew is everything. Show you communicated and backed people up.'],
+  ['Situational','A passenger feels sick mid-flight. Walk me through what you\u2019d do.','Stay calm, follow your training and procedures, call for help, keep the passenger comfortable. They\u2019re checking judgment, not medical skill.'],
+  ['Motivation','Why do you want to be a flight attendant?','Go beyond travel perks. Talk about safety, service, and caring for people. Perks-only answers are a red flag.'],
+  ['Behavioral','Tell me about a time you went above and beyond for someone.','A specific moment with a clear result. Small, genuine gestures count.'],
+  ['Motivation','Being on reserve means little notice and living near your base. How would you handle that?','Honesty and flexibility. Show you understand the lifestyle and have a plan for it.'],
+  ['Behavioral','Describe a time you disagreed with a coworker. How did you handle it?','Mature conflict handling: private, respectful, focused on the goal.']
+ ],
+ gate:[
+  ['Behavioral','Tell me about a time you dealt with a flight delay or cancellation.','Staying calm, rebooking fast, keeping people informed. Mention how you communicated.'],
+  ['Situational','A flight is oversold and nobody wants to take the voucher. What do you do?','Following policy, clear announcements, fair treatment, escalating to a lead when needed.'],
+  ['Behavioral','Describe a time a customer yelled at you. How did you respond?','Not taking it personally, de-escalating, and still solving their problem.'],
+  ['Situational','Boarding is running late and the flight has to leave on time. How do you get it out?','Prioritizing, clear direction to passengers, teamwork with the crew and ramp.'],
+  ['Behavioral','Tell me about a time you caught a mistake before it became a problem.','Attention to detail. At the gate a missed detail can delay a whole flight.'],
+  ['Behavioral','Tell me about a time you had to learn a new system quickly.','Comfort with technology and learning fast. Airline systems take practice.'],
+  ['Motivation','This job means early mornings, nights, weekends and holidays. How do you feel about that?','Honest availability. Shift work is the job.'],
+  ['Behavioral','Describe a time you helped a coworker who was overwhelmed.','Team player who steps in and stays steady when things get hectic.'],
+  ['Situational','A passenger misses their connection and is crying at your counter. What do you do?','Empathy first, then options. Show you can be kind and efficient at the same time.']
+ ],
+ ramp:[
+  ['Behavioral','Tell me about a time you had to follow a safety procedure exactly.','Safety is non-negotiable on the ramp. Show you follow the steps even when rushed.'],
+  ['Situational','You notice something unsafe near an aircraft but you\u2019re behind schedule. What do you do?','Speak up and stop. Safety beats the clock every time. This is the answer they want.'],
+  ['Behavioral','Describe a time you worked hard outside in bad weather or tough conditions.','Physical toughness and a good attitude about heat, cold and rain.'],
+  ['Behavioral','Tell me about a time you worked as part of a fast-moving team.','Tight turn times depend on everyone doing their part. Show communication and reliability.'],
+  ['Behavioral','Tell me about a time you made a mistake at work. What happened next?','Owning it right away, fixing it, and learning. Hiding mistakes is dangerous on a ramp.'],
+  ['Motivation','This job is physical and runs on shifts. Why does it appeal to you?','Honesty about the physical side and real interest in aviation or teamwork.'],
+  ['Situational','A coworker is cutting corners to save time. How do you handle it?','Safety culture: address it, and report it if it continues.']
+ ],
+ res:[
+  ['Behavioral','Tell me about a time you calmed down an angry caller.','Tone of voice, patience, and a clear fix. On the phone your voice does all the work.'],
+  ['Behavioral','Describe a time you handled several tasks at once.','Multitasking between systems, notes and the customer without dropping anything.'],
+  ['Situational','A customer wants a refund the policy doesn\u2019t allow. What do you do?','Explaining policy kindly, offering what you can do, and knowing when to escalate.'],
+  ['Behavioral','Tell me about a time you had to explain something complicated simply.','Clear communication. Fare rules and changes confuse people.'],
+  ['Motivation','How do you stay upbeat on the 50th call of the day?','Resilience and self-care. They want someone who won\u2019t burn out in a month.'],
+  ['Behavioral','Describe a time you met a goal or metric at work.','Comfort being measured on things like call time and customer ratings.'],
+  ['Situational','A caller\u2019s trip has several problems and they\u2019re in a hurry. How do you prioritize?','Fixing the most urgent piece first and keeping them informed.']
+ ]
+};
+var TIPS={
+ fa:[
+  ['What the interview often looks like','Many airlines start with an online application and a one-way video interview, then bring finalists in for a group activity and a one-on-one. In group exercises, include the quiet people. They are watching how you treat others, not who talks most.'],
+  ['What they really hire for','Safety and customer service. Service is what passengers see, but the job exists for safety. Say both.'],
+  ['Life after you\u2019re hired','Training is intense and usually lasts several weeks. New flight attendants typically start on reserve, live near an assigned base, and get schedules by seniority. Showing you understand this makes you look ready.'],
+  ['Requirements to check','Height or reach rules, vision, age, and background checks vary by airline. Read the posting before you apply.']
+ ],
+ gate:[
+  ['What the job really is','Boarding flights, fixing reservations, and keeping your cool when weather or maintenance wrecks the schedule. The hard days, when flights are delayed or canceled, are the days that matter most.'],
+  ['What they hire for','Calm under pressure, speed on the computer, and people skills. Stories about delays, rebooking, and upset customers are gold.'],
+  ['Who you might work for','Many airport jobs are with contractors that handle gates and ticket counters for an airline, not the airline itself. Travel perks and pay can differ, so ask.'],
+  ['Before you start','Expect a background check and a security badge process before you can work airside.']
+ ],
+ ramp:[
+  ['What the job really is','Loading and unloading bags and cargo, pushing back aircraft, and working around moving equipment in every kind of weather, on tight turn times.'],
+  ['What they hire for','Safety habits, reliability, teamwork, and being able to handle the physical work. Check the posting for the lifting requirement.'],
+  ['What to say about safety','If you ever have to choose between the clock and safety, you choose safety. Say it plainly.']
+ ],
+ res:[
+  ['What the job really is','Helping travelers by phone or chat with bookings, changes, and problems, often from a call center or from home.'],
+  ['What they hire for','A warm, clear voice, patience, typing and system skills, and staying positive through a long queue.'],
+  ['Common setup','Expect metrics like call time and customer ratings, plus scheduled shifts including weekends.']
+ ]
+};
+var GENERAL=[
+ ['Use the STAR shape','Situation, Task, Action, Result. Keep each answer to about one to two minutes, spend most of it on what you did, and always finish with how it turned out.'],
+ ['Have four or five stories ready','An upset customer, a stressful rush, a team win, a mistake you fixed, and going above and beyond. Most questions fit one of these.'],
+ ['Look the part','Airlines care about a polished, professional look. Dress conservatively and neatly, even for video interviews.'],
+ ['Smile and be warm','Friendliness is part of the job, so it is part of the interview. Warmth comes through on video too.'],
+ ['Ask them a question','Have one or two ready, like what a new hire\u2019s first few months look like.']
+];
+
+/* ---------- storage (per viewer, on this device) ---------- */
+var KEY='cft_v1',state={role:'fa',answered:0,stories:[],seen:{}};
+function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&typeof o==='object'){state.role=ROLES[o.role]?o.role:'fa';state.answered=+o.answered||0;state.stories=Array.isArray(o.stories)?o.stories:[];state.seen=o.seen&&typeof o.seen==='object'?o.seen:{};}}}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function $(id){return document.getElementById(id);}
+function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+function stats(){$('statAnswered').textContent=state.answered;$('statStories').textContent=state.stories.length;}
+
+/* ---------- AI (asks Claude on the viewer's own account) ---------- */
+var samplePromise=null;
+function getSample(){
+  if(!samplePromise){samplePromise=(async function(){try{if(window.claude&&window.claude.use)return await window.claude.use('sample');}catch(e){}return null;})();}
+  return samplePromise;
+}
+
+/* ---------- practice ---------- */
+var order=[],pos=0;
+function shuffle(n){var a=[];for(var i=0;i<n;i++)a.push(i);for(i=n-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function curQ(){return Q[state.role][order[pos]];}
+function showQ(){
+  var q=curQ();$('qKind').textContent=q[0];$('qText').textContent=q[1];$('qTip').textContent=q[2];
+  $('qCount').textContent='Question '+(pos+1)+' of '+order.length;
+  $('answer').value='';$('feedback').hidden=true;$('fbError').hidden=true;$('thinking').hidden=true;
+  var d=document.querySelector('.hint');if(d)d.open=false;
+}
+function newRound(){order=shuffle(Q[state.role].length);pos=0;showQ();}
+$('btnNext').addEventListener('click',function(){var last=order[pos];pos=(pos+1)%order.length;if(pos===0){order=shuffle(Q[state.role].length);if(order.length>1&&order[0]===last){order.push(order.shift());}}showQ();});
+
+function starGuess(t){
+  var s=t.toLowerCase();
+  return{
+    situation:/\b(one time|once|when i|there was|last (year|month|week)|at my|while i was|during)\b/.test(s),
+    task:/\b(i needed to|i had to|my job|my role|i was responsible|goal was|had to)\b/.test(s),
+    action:/\bi (called|asked|told|explained|made|took|helped|stayed|checked|rebooked|found|offered|listened|decided|worked|reached|set|walked|apologized|followed)\b/.test(s),
+    result:/\b(in the end|as a result|ended up|result|thanked|resolved|on time|so that|which meant|because of that|afterward|now)\b/.test(s)
+  };
+}
+function lights(n){var h='<div class="lights" aria-hidden="true">';for(var i=1;i<=5;i++)h+='<i class="'+(i<=n?'on':'')+'"></i>';return h+'</div>';}
+function starRow(st){
+  var names=[['situation','Situation'],['task','Task'],['action','Action'],['result','Result']];
+  return '<div class="star">'+names.map(function(n){return '<div class="'+(st[n[0]]?'ok':'miss')+'">'+n[1]+'<br>'+(st[n[0]]?'\u2713':'missing')+'</div>';}).join('')+'</div>';
+}
+function renderAI(d){
+  var n=Math.max(1,Math.min(5,Math.round(+d.score||0)));
+  var h='<div class="score">'+lights(n)+'<b>'+n+' of 5</b></div>';
+  h+='<p style="margin-top:8px">'+esc(d.summary||'')+'</p>';
+  h+=starRow(d.star||{});
+  if(d.worked&&d.worked.length)h+='<h3>What worked</h3><ul>'+d.worked.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
+  if(d.improve&&d.improve.length)h+='<h3>Make it stronger</h3><ul>'+d.improve.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
+  if(d.stronger)h+='<h3>A stronger version</h3><div class="better">'+esc(d.stronger)+'</div><p class="small">Use it for ideas, then say it in your own words. Interviewers can tell when an answer is memorized.</p>';
+  return h;
+}
+function renderLocal(t){
+  var st=starGuess(t),words=t.trim().split(/\s+/).filter(Boolean).length,notes=[];
+  if(words<60)notes.push('This is short. Most strong answers run about 150 to 300 words, or one to two minutes out loud.');
+  if(words>380)notes.push('This is long. Trim the setup and spend your time on what you did.');
+  if(!st.situation)notes.push('Set the scene in a sentence: where you were and what was happening.');
+  if(!st.action)notes.push('Say exactly what you did, using "I." Interviewers want your actions, not the team\u2019s.');
+  if(!st.result)notes.push('Finish with how it turned out. A number or a customer\u2019s reaction makes it stick.');
+  if(!notes.length)notes.push('Nice structure. Read it out loud once and time yourself.');
+  return '<div class="score"><b>Quick check</b></div><p class="small" style="margin-top:4px">Live AI feedback isn\u2019t available here, so this is a structure check. Open the app while signed in to Claude for a full review.</p>'+starRow(st)+'<h3>Make it stronger</h3><ul>'+notes.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
+}
+function cleanFeedback(d){
+  if(!d||typeof d!=='object')return null;
+  var list=function(a){return Array.isArray(a)?a.map(function(x){return String(x==null?'':x);}).filter(Boolean).slice(0,5):[];};
+  var s=d.star&&typeof d.star==='object'?d.star:{};
+  var out={score:+d.score,summary:String(d.summary||''),worked:list(d.worked),improve:list(d.improve),stronger:String(d.stronger||''),
+    star:{situation:!!s.situation,task:!!s.task,action:!!s.action,result:!!s.result}};
+  if(!(out.score>=1&&out.score<=5)||!out.summary)return null;
+  return out;
+}
+var busy=false;
+$('btnFeedback').addEventListener('click',async function(){
+  if(busy)return;
+  var t=$('answer').value.trim(),q=curQ(),btn=this;
+  $('fbError').hidden=true;
+  if(t.split(/\s+/).filter(Boolean).length<8){$('fbError').textContent='Write at least a few sentences first, the way you\u2019d answer out loud.';$('fbError').hidden=false;return;}
+  busy=true;btn.disabled=true;
+  var sample=await getSample(),html=null;
+  if(sample){
+    $('thinking').hidden=false;
+    var prompt='You are an experienced airline hiring coach. A candidate applying for the role of '+ROLES[state.role]+' answered an interview question. Give honest, encouraging, specific feedback. Judge the answer against the STAR method and against what airline interviewers look for in this role (safety, customer service, teamwork, calm under pressure, reliability). Do not invent details about the candidate.\n\nQuestion: '+q[1]+'\nWhat interviewers listen for: '+q[2]+'\n\nCandidate answer:\n"""\n'+t.slice(0,4000)+'\n"""\n\nRespond ONLY with JSON in exactly this shape:\n{"score": 1-5 whole number, "summary": "one or two sentences", "star": {"situation": true/false, "task": true/false, "action": true/false, "result": true/false}, "worked": ["up to 3 short points"], "improve": ["up to 3 short, concrete fixes"], "stronger": "a rewritten answer of 120-220 words in first person that keeps ONLY the facts the candidate gave; where a detail is missing, use a clearly marked placeholder in [brackets]"}';
+    try{var d=cleanFeedback(await sample.json(prompt,{modelTier:'default'}));if(d)html=renderAI(d);}
+    catch(e){
+      if(e&&e.code==='rate_limited'){$('fbError').textContent='Too many requests right now. Wait a minute and try again.';$('fbError').hidden=false;}
+    }
+    $('thinking').hidden=true;
+  }
+  if(!html&&$('fbError').hidden)html=renderLocal(t);
+  if(html){$('feedback').innerHTML=html;$('feedback').hidden=false;
+    var k=state.role+':'+order[pos];if(!state.seen[k]){state.seen[k]=1;state.answered++;save();stats();}}
+  busy=false;btn.disabled=false;
+});
+
+/* ---------- stories ---------- */
+function renderStories(){
+  var box=$('storyList');
+  if(!state.stories.length){box.innerHTML='<div class="empty">No stories yet. Fill in the four parts above and save your first one.</div>';return;}
+  box.innerHTML=state.stories.map(function(s,i){
+    return '<div class="story"><h3>'+esc(s.title)+'</h3>'
+      +'<p><b>Situation:</b> '+esc(s.s)+'</p><p><b>Task:</b> '+esc(s.t)+'</p><p><b>Action:</b> '+esc(s.a)+'</p><p><b>Result:</b> '+esc(s.r)+'</p>'
+      +(s.polished?'<div class="polished">'+esc(s.polished)+'</div>':'')
+      +'<div><button class="linkbtn" data-polish="'+i+'">'+(s.polished?'Polish again':'Turn into a spoken answer')+'</button><button class="linkbtn danger" data-del="'+i+'">Delete</button></div>'
+      +'<div class="small" data-status="'+i+'"></div></div>';
+  }).join('');
+}
+$('btnSaveStory').addEventListener('click',function(){
+  var s={title:$('sTitle').value.trim(),s:$('sS').value.trim(),t:$('sT').value.trim(),a:$('sA').value.trim(),r:$('sR').value.trim()};
+  var m=$('storyMsg');
+  if(!s.title||!s.s||!s.a||!s.r){m.textContent='Add a name, a situation, what you did, and how it turned out. Task is optional.';m.hidden=false;return;}
+  m.hidden=true;state.stories.unshift(s);save();stats();renderStories();
+  ['sTitle','sS','sT','sA','sR'].forEach(function(id){$(id).value='';});
+});
+$('storyList').addEventListener('click',async function(e){
+  var b=e.target.closest('button');if(!b)return;
+  if(b.hasAttribute('data-del')){var i=+b.getAttribute('data-del');if(confirmDelete(b)){state.stories.splice(i,1);save();stats();renderStories();}return;}
+  if(b.hasAttribute('data-polish')){
+    var j=+b.getAttribute('data-polish'),s=state.stories[j],st=document.querySelector('[data-status="'+j+'"]');
+    var sample=await getSample();
+    if(!sample){st.textContent='Polishing needs the app open while signed in to Claude.';return;}
+    b.disabled=true;st.textContent='Writing your answer… this can take up to a minute.';
+    var prompt='Turn this job-interview story into a natural spoken answer for an airline '+ROLES[state.role]+' interview. First person, warm, confident, 150-220 words, STAR order, ending on the result. Use ONLY the facts given; do not add new events, numbers or names. Return only the answer text.\n\nSituation: '+s.s+'\nTask: '+(s.t||'(not given)')+'\nAction: '+s.a+'\nResult: '+s.r;
+    try{var r=await sample(prompt,{modelTier:'default'});var txt=(r&&r.text||'').trim();if(txt){s.polished=txt;save();renderStories();return;}st.textContent='No answer came back. Try again.';}
+    catch(err){st.textContent=err&&err.code==='rate_limited'?'Too many requests right now. Wait a minute and try again.':(err&&err.code==='not_granted'?'Polishing needs permission to use Claude.':'That didn\u2019t work. Try again.');}
+    b.disabled=false;
+  }
+});
+function confirmDelete(b){
+  if(b.getAttribute('data-armed')==='1')return true;
+  b.setAttribute('data-armed','1');b.textContent='Tap again to delete';
+  setTimeout(function(){if(b.isConnected){b.removeAttribute('data-armed');b.textContent='Delete';}},3000);
+  return false;
+}
+
+/* ---------- tips ---------- */
+function tipHTML(list){return list.map(function(t){return '<div class="tip"><h3>'+esc(t[0])+'</h3><p>'+esc(t[1])+'</p></div>';}).join('');}
+function renderTips(){$('tipsRole').innerHTML='<h2 class="section-h" style="margin-top:4px">'+esc(ROLES[state.role])+'</h2>'+tipHTML(TIPS[state.role]);$('tipsGeneral').innerHTML=tipHTML(GENERAL);}
+
+/* ---------- tabs & role ---------- */
+document.querySelectorAll('nav.tabs button').forEach(function(b){
+  b.addEventListener('click',function(){
+    var tab=b.getAttribute('data-tab');
+    document.querySelectorAll('nav.tabs button').forEach(function(x){x.setAttribute('aria-selected',x===b?'true':'false');});
+    ['practice','stories','tips'].forEach(function(p){$('p-'+p).hidden=p!==tab;});
+  });
+});
+$('roleSel').addEventListener('change',function(){state.role=this.value;save();newRound();renderTips();});
+
+load();$('roleSel').value=state.role;stats();newRound();renderStories();renderTips();getSample();
+})();
+</script>
+</body>
+</html>
