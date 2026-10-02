@@ -260,11 +260,16 @@ function $(id){return document.getElementById(id);}
 function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
 function stats(){$('statAnswered').textContent=state.answered;$('statStories').textContent=state.stories.length;}
 
-/* ---------- AI (asks Claude on the viewer's own account) ---------- */
-var samplePromise=null;
-function getSample(){
-  if(!samplePromise){samplePromise=(async function(){try{if(window.claude&&window.claude.use)return await window.claude.use('sample');}catch(e){}return null;})();}
-  return samplePromise;
+/* ---------- AI (through the Cleared for Takeoff server) ---------- */
+var API_URL='https://cleared-for-takeoff-api.susantemplin.workers.dev';
+async function callAI(payload){
+  var ctl=new AbortController(),timer=setTimeout(function(){ctl.abort();},60000),r,d;
+  try{r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctl.signal});}
+  catch(e){var ne=new Error('network');ne.code='network';throw ne;}
+  finally{clearTimeout(timer);}
+  try{d=await r.json();}catch(e){d=null;}
+  if(!r.ok||!d){var er=new Error('ai');er.code=(d&&d.error)||'upstream';throw er;}
+  return d;
 }
 
 /* ---------- practice ---------- */
@@ -312,7 +317,7 @@ function renderLocal(t){
   if(!st.action)notes.push('Say exactly what you did, using "I." Interviewers want your actions, not the team\u2019s.');
   if(!st.result)notes.push('Finish with how it turned out. A number or a customer\u2019s reaction makes it stick.');
   if(!notes.length)notes.push('Nice structure. Read it out loud once and time yourself.');
-  return '<div class="score"><b>Quick check</b></div><p class="small" style="margin-top:4px">Live AI feedback isn\u2019t available here, so this is a structure check. Open the app while signed in to Claude for a full review.</p>'+starRow(st)+'<h3>Make it stronger</h3><ul>'+notes.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
+  return '<div class="score"><b>Quick check</b></div><p class="small" style="margin-top:4px">Live AI feedback couldn\u2019t be reached just now, so this is a quick structure check. Try again in a minute for a full review.</p>'+starRow(st)+'<h3>Make it stronger</h3><ul>'+notes.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
 }
 function cleanFeedback(d){
   if(!d||typeof d!=='object')return null;
@@ -330,11 +335,10 @@ $('btnFeedback').addEventListener('click',async function(){
   $('fbError').hidden=true;
   if(t.split(/\s+/).filter(Boolean).length<8){$('fbError').textContent='Write at least a few sentences first, the way you\u2019d answer out loud.';$('fbError').hidden=false;return;}
   busy=true;btn.disabled=true;
-  var sample=await getSample(),html=null;
-  if(sample){
+  var html=null;
+  {
     $('thinking').hidden=false;
-    var prompt='You are an experienced airline hiring coach. A candidate applying for the role of '+ROLES[state.role]+' answered an interview question. Give honest, encouraging, specific feedback. Judge the answer against the STAR method and against what airline interviewers look for in this role (safety, customer service, teamwork, calm under pressure, reliability). Do not invent details about the candidate.\n\nQuestion: '+q[1]+'\nWhat interviewers listen for: '+q[2]+'\n\nCandidate answer:\n"""\n'+t.slice(0,4000)+'\n"""\n\nRespond ONLY with JSON in exactly this shape:\n{"score": 1-5 whole number, "summary": "one or two sentences", "star": {"situation": true/false, "task": true/false, "action": true/false, "result": true/false}, "worked": ["up to 3 short points"], "improve": ["up to 3 short, concrete fixes"], "stronger": "a rewritten answer of 120-220 words in first person that keeps ONLY the facts the candidate gave; where a detail is missing, use a clearly marked placeholder in [brackets]"}';
-    try{var d=cleanFeedback(await sample.json(prompt,{modelTier:'default'}));if(d)html=renderAI(d);}
+    try{var res=await callAI({type:'feedback',role:state.role,question:q[1],tip:q[2],answer:t.slice(0,4000)});var d=cleanFeedback(res.feedback);if(d)html=renderAI(d);}
     catch(e){
       if(e&&e.code==='rate_limited'){$('fbError').textContent='Too many requests right now. Wait a minute and try again.';$('fbError').hidden=false;}
     }
@@ -370,12 +374,9 @@ $('storyList').addEventListener('click',async function(e){
   if(b.hasAttribute('data-del')){var i=+b.getAttribute('data-del');if(confirmDelete(b)){state.stories.splice(i,1);save();stats();renderStories();}return;}
   if(b.hasAttribute('data-polish')){
     var j=+b.getAttribute('data-polish'),s=state.stories[j],st=document.querySelector('[data-status="'+j+'"]');
-    var sample=await getSample();
-    if(!sample){st.textContent='Polishing needs the app open while signed in to Claude.';return;}
     b.disabled=true;st.textContent='Writing your answer… this can take up to a minute.';
-    var prompt='Turn this job-interview story into a natural spoken answer for an airline '+ROLES[state.role]+' interview. First person, warm, confident, 150-220 words, STAR order, ending on the result. Use ONLY the facts given; do not add new events, numbers or names. Return only the answer text.\n\nSituation: '+s.s+'\nTask: '+(s.t||'(not given)')+'\nAction: '+s.a+'\nResult: '+s.r;
-    try{var r=await sample(prompt,{modelTier:'default'});var txt=(r&&r.text||'').trim();if(txt){s.polished=txt;save();renderStories();return;}st.textContent='No answer came back. Try again.';}
-    catch(err){st.textContent=err&&err.code==='rate_limited'?'Too many requests right now. Wait a minute and try again.':(err&&err.code==='not_granted'?'Polishing needs permission to use Claude.':'That didn\u2019t work. Try again.');}
+    try{var r=await callAI({type:'polish',role:state.role,s:s.s,t:s.t||'',a:s.a,r:s.r});var txt=(r&&r.text||'').trim();if(txt){s.polished=txt;save();renderStories();return;}st.textContent='No answer came back. Try again.';}
+    catch(err){st.textContent=err&&err.code==='rate_limited'?'Too many requests right now. Wait a minute and try again.':(err&&err.code==='network'?'Couldn\u2019t connect. Check your internet and try again.':'That didn\u2019t work. Try again.');}
     b.disabled=false;
   }
 });
@@ -400,7 +401,7 @@ document.querySelectorAll('nav.tabs button').forEach(function(b){
 });
 $('roleSel').addEventListener('change',function(){state.role=this.value;save();newRound();renderTips();});
 
-load();$('roleSel').value=state.role;stats();newRound();renderStories();renderTips();getSample();
+load();$('roleSel').value=state.role;stats();newRound();renderStories();renderTips();
 })();
 </script>
 </body>
