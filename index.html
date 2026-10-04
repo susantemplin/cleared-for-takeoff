@@ -110,6 +110,7 @@ textarea{width:100%;min-height:150px;margin-top:12px;padding:12px 14px;border:1.
 .tip p{margin:0}
 .section-h{font-size:24px;margin:22px 0 4px}
 footer{margin-top:28px;font-size:13px;color:var(--ink2);text-align:center}
+footer a{color:var(--sky);font-weight:600;margin:0 10px;display:inline-block;padding:6px 0}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:no-preference){.feedback{animation:rise .25s ease-out}@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
 </style>
@@ -188,7 +189,7 @@ footer{margin-top:28px;font-size:13px;color:var(--ink2);text-align:center}
     <div id="tipsGeneral"></div>
   </section>
 
-  <footer>Practice tool only. Every airline runs its own hiring process, so check the job posting for exact requirements.</footer>
+  <footer><p style="margin:0 0 8px">Practice tool only. Every airline runs its own hiring process, so check the job posting for exact requirements.</p><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a></footer>
 </div>
 
 <script>
@@ -196,53 +197,29 @@ footer{margin-top:28px;font-size:13px;color:var(--ink2);text-align:center}
 'use strict';
 var ROLES={fa:'Flight attendant',gate:'Gate & ticket agent',ramp:'Ramp agent',res:'Reservations & customer care'};
 
-/* Main questions: answerable from ANY background (retail, food service, healthcare, school, volunteering, family). */
-var CORE={
- fa:[
-  ['Behavioral','Tell me about a time you handled an upset or difficult customer.','Calm, empathy, and a fix. Show you listened before you acted. Retail, restaurant, or any front-desk story works great.'],
-  ['Behavioral','Describe a time you had to enforce a rule or policy someone didn’t like.','Firm but kind. They want to see you hold the line politely, because on a plane safety rules aren’t optional.'],
-  ['Behavioral','Tell me about a time you stayed calm when things got stressful or scary.','Steady under pressure. Show what you did to keep yourself and others calm.'],
-  ['Behavioral','Tell me about a time you worked with a team to get something done under pressure.','A crew only works as a team. Show how you communicated and backed people up.'],
-  ['Behavioral','Tell me about a time you went above and beyond for someone.','A specific moment with a clear result. Small, genuine gestures count.'],
-  ['Behavioral','Tell me about a time you helped someone who was nervous, scared, or upset.','Compassion and reassurance. Many passengers are anxious flyers, and they want to see you’re a calming presence.'],
-  ['Behavioral','Describe a time you disagreed with a coworker. How did you handle it?','Mature conflict handling: private, respectful, and focused on the goal.'],
-  ['Behavioral','Tell me about a time your plans changed suddenly and you had to adapt.','Flexibility. Schedules change constantly in this job, so show you roll with it.'],
-  ['Behavioral','Tell me about a time you got feedback or criticism. What did you do with it?','Coachability. Show you listened, didn’t get defensive, and improved.'],
-  ['Motivation','Why do you want to be a flight attendant?','Go beyond travel perks. Talk about caring for people, service, and safety. Perks-only answers are a red flag.']
- ],
- gate:[
-  ['Behavioral','Tell me about a time a customer was angry about something you couldn’t control.','Not taking it personally, de-escalating, and still finding them a next step. Any customer-facing job counts.'],
-  ['Behavioral','Describe a time something went wrong and you had to fix it fast.','Quick thinking and staying calm. Show your steps and how it turned out.'],
-  ['Behavioral','Tell me about a time you juggled several tasks or people at once.','Prioritizing under pressure. Gate work means a line, a phone, and a departure time all at once.'],
-  ['Behavioral','Tell me about a time you caught a mistake before it became a problem.','Attention to detail. At the gate, one missed detail can delay a whole flight.'],
-  ['Behavioral','Tell me about a time you had to learn a new system or tool quickly.','Comfort with technology and learning fast. Airline systems take practice.'],
-  ['Behavioral','Tell me about a time you had to tell a customer no but still kept them happy.','Explaining kindly, offering what you can do, and keeping your tone warm.'],
-  ['Behavioral','Describe a time you helped a coworker who was overwhelmed.','A team player who steps in and stays steady when things get hectic.'],
-  ['Behavioral','Tell me about a time you followed a policy even though it was inconvenient.','Integrity and consistency. Airlines need agents who apply the rules fairly to everyone.'],
-  ['Motivation','This job means early mornings, nights, weekends, and holidays. How do you feel about that?','Honest availability. Shift work is the job, so show you’ve thought it through.'],
-  ['Motivation','Why do you want to work at the airport?','Real interest in helping travelers and working in a fast-paced team, not just the perks.']
- ],
- ramp:[
-  ['Behavioral','Tell me about a time you followed a safety rule or procedure exactly, even when you were rushed.','Safety is non-negotiable on the ramp. Any job with safety steps works: warehouse, kitchen, construction, even lifeguarding.'],
-  ['Behavioral','Tell me about a time you spoke up because something didn’t seem right.','Courage to speak up. On the ramp, staying quiet about a hazard is dangerous.'],
-  ['Behavioral','Describe a time you did hard physical work or worked in tough conditions.','Physical toughness and a good attitude about heat, cold, rain, and long hours.'],
-  ['Behavioral','Tell me about a time you were part of a team on a tight deadline.','Tight turn times depend on everyone doing their part. Show communication and reliability.'],
-  ['Behavioral','Tell me about a time you made a mistake. What happened next?','Owning it right away, fixing it, and learning. Hiding mistakes is dangerous on a ramp.'],
-  ['Behavioral','Tell me about a time you had to follow instructions exactly.','Precision and listening. Loading and pushback depend on doing it the same right way every time.'],
-  ['Behavioral','Tell me about a time people counted on you and you came through.','Dependability. Showing up on time and finishing the job matter a lot here.'],
-  ['Motivation','This job is physical and runs on shifts. Why does it appeal to you?','Honesty about the physical side and real interest in aviation or teamwork.']
- ],
- res:[
-  ['Behavioral','Tell me about a time you calmed down an upset customer, in person or on the phone.','Tone of voice, patience, and a clear fix. On the phone your voice does all the work.'],
-  ['Behavioral','Describe a time you handled several tasks at once without dropping anything.','Juggling systems, notes, and the customer at the same time.'],
-  ['Behavioral','Tell me about a time you had to explain something complicated in a simple way.','Clear communication. Fare rules and travel changes confuse people.'],
-  ['Behavioral','Tell me about a time you had to tell someone no and still kept them happy.','Explaining policy kindly, offering what you can do, and knowing when to escalate.'],
-  ['Behavioral','Tell me about a time you met a goal or deadline.','Comfort being measured on things like call time and customer ratings.'],
-  ['Behavioral','Tell me about a time you stayed positive through a long or repetitive day.','Resilience and self-care. They want someone who won’t burn out in a month.'],
-  ['Behavioral','Tell me about a time you went out of your way to solve someone’s problem.','Ownership. Show you followed through until it was actually fixed.'],
-  ['Motivation','Why do you want to work in customer care?','Real enjoyment of helping people, plus honesty about the challenges of a busy queue.']
- ]
-};
+/* Main questions: the same 19 for every role, answerable from ANY background (retail, food service, healthcare, school, volunteering, family). */
+var SHARED=[
+ ['Behavioral','Tell me about a time you turned around an upset customer.','Calm, empathy, and a fix. Show you listened before you acted, and finish with how the person left feeling.'],
+ ['Behavioral','Describe a time you went above and beyond for someone.','A specific moment with a clear result. Small, genuine gestures count as much as big ones.'],
+ ['Behavioral','Tell me about a time you had to tell a customer no. How did you handle it?','Firm but kind. Explain the why, offer what you could do instead, and keep your tone warm.'],
+ ['Behavioral','Tell me about a time you helped a coworker who was struggling.','A team player who notices and steps in. Show what you did, not just that you cared.'],
+ ['Behavioral','Describe a time you disagreed with a teammate. What happened?','Mature conflict handling: private, respectful, and focused on the shared goal. End on how you worked it out.'],
+ ['Behavioral','Tell me about a time your team had to pull together to hit a deadline.','Communication and reliability. Say what your part was, using "I," and how the team got it done.'],
+ ['Behavioral','Tell me about a time plans changed at the last minute. How did you adapt?','Flexibility. Schedules change constantly in airline jobs, so show you roll with it and keep going.'],
+ ['Behavioral','Describe a stressful day at work and how you stayed calm.','Steady under pressure. Name what you did to keep yourself and the people around you calm.'],
+ ['Behavioral','Tell me about a time you had to juggle several urgent tasks at once.','Prioritizing. Explain how you decided what came first and how you kept everything moving.'],
+ ['Behavioral','Tell me about a time you followed a rule even though it was unpopular.','Integrity and consistency. Airlines need people who apply the rules fairly, because many of them are about safety.'],
+ ['Behavioral','Describe a time you noticed a safety or policy issue. What did you do?','Courage to speak up. They want to hear that you raised it, even when it was easier to stay quiet.'],
+ ['Behavioral','Tell me about a mistake you made and how you fixed it.','Owning it right away, fixing it, and what you learned. Hiding mistakes is a red flag.'],
+ ['Behavioral','Tell me about a time you had to explain something to someone who didn\u2019t understand.','Clear, patient communication. Show how you changed your explanation until it clicked.'],
+ ['Behavioral','Describe a time you had to give someone difficult feedback.','Honest but respectful. Show you chose the right moment, stayed kind, and focused on the fix.'],
+ ['Behavioral','Tell me about a time you received criticism from a supervisor. How did you handle it?','Coachability. Show you listened, didn\u2019t get defensive, and actually changed something.'],
+ ['Motivation','Why do you want to work for an airline?','Go beyond travel perks. Talk about caring for people, teamwork, and safety. Perks-only answers are a red flag.'],
+ ['Motivation','Why this airline specifically?','Do your homework. Mention something real about the airline, like its values, routes, or reputation, and connect it to you.'],
+ ['Motivation','How do you feel about irregular schedules, holidays, and early mornings?','Honest availability. Shift work is the job, so show you\u2019ve thought it through and have a plan.'],
+ ['Motivation','Tell me about yourself.','A short story about you: what you do now, what you\u2019re good at, and why this job is your next step. About one minute.']
+];
+var CORE={fa:SHARED,gate:SHARED,ramp:SHARED,res:SHARED};
 
 /* Optional extra practice: airline-specific scenarios. Nobody is expected to know these already. */
 var KNOW={
@@ -422,7 +399,7 @@ $('btnFeedback').addEventListener('click',async function(){
   $('thinking').hidden=true;
   if(!html&&$('fbError').hidden)html=renderLocal(t,why);
   if(html){$('feedback').innerHTML=html;$('feedback').hidden=false;
-    var k=state.role+':'+state.set+':'+order[pos];if(!state.seen[k]){state.seen[k]=1;state.answered++;save();stats();}}
+    var k=state.set+':'+q[1];if(!state.seen[k]){state.seen[k]=1;state.answered++;save();stats();}}
   busy=false;btn.disabled=false;
 });
 
