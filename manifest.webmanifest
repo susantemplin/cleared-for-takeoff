@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Cleared for Takeoff — Airline Interview Coach",
+  "short_name": "Takeoff",
+  "description": "Practice airline interview questions and get AI feedback on your answers.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14304F",
+  "theme_color": "#14304F",
+  "lang": "en",
+  "categories": ["education", "business", "productivity"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
