@@ -206,7 +206,7 @@ footer a{color:var(--sky);font-weight:600;margin:0 10px;display:inline-block;pad
 'use strict';
 var ROLES={fa:'Flight attendant',gate:'Gate & ticket agent',ramp:'Ramp agent',res:'Reservations & customer care'};
 
-/* Main questions: the same 19 for every role, answerable from ANY background (retail, food service, healthcare, school, volunteering, family). */
+/* Main questions: the same 20 for every role, answerable from ANY background (retail, food service, healthcare, school, volunteering, family). */
 var SHARED=[
  ['Behavioral','Tell me about a time you turned around an upset customer.','Calm, empathy, and a fix. Show you listened before you acted, and finish with how the person left feeling.'],
  ['Behavioral','Describe a time you went above and beyond for someone.','A specific moment with a clear result. Small, genuine gestures count as much as big ones.'],
@@ -223,6 +223,7 @@ var SHARED=[
  ['Behavioral','Tell me about a time you had to explain something to someone who didn\u2019t understand.','Clear, patient communication. Show how you changed your explanation until it clicked.'],
  ['Behavioral','Describe a time you had to give someone difficult feedback.','Honest but respectful. Show you chose the right moment, stayed kind, and focused on the fix.'],
  ['Behavioral','Tell me about a time you received criticism from a supervisor. How did you handle it?','Coachability. Show you listened, didn\u2019t get defensive, and actually changed something.'],
+ ['Behavioral','Tell me about a time you had to make a decision without your supervisor.','Good judgment and ownership. Show how you weighed the situation, made a safe call within the rules, and kept your supervisor in the loop afterward.'],
  ['Motivation','Why do you want to work for an airline?','Go beyond travel perks. Talk about caring for people, teamwork, and safety. Perks-only answers are a red flag.'],
  ['Motivation','Why this airline specifically?','Do your homework. Mention something real about the airline, like its values, routes, or reputation, and connect it to you.'],
  ['Motivation','How do you feel about irregular schedules, holidays, and early mornings?','Honest availability. Shift work is the job, so show you\u2019ve thought it through and have a plan.'],
@@ -300,8 +301,8 @@ var GENERAL=[
 ];
 
 /* ---------- storage (per viewer, on this device) ---------- */
-var KEY='cft_v1',state={role:'fa',set:'core',answered:0,stories:[],seen:{}};
-function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&typeof o==='object'){state.role=ROLES[o.role]?o.role:'fa';state.set=SETS[o.set]?o.set:'core';state.answered=+o.answered||0;state.stories=Array.isArray(o.stories)?o.stories:[];state.seen=o.seen&&typeof o.seen==='object'?o.seen:{};}}}catch(e){}}
+var KEY='cft_v1',state={role:'fa',set:'core',answered:0,stories:[],seen:{},ai:{day:'',used:0}};
+function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&typeof o==='object'){state.role=ROLES[o.role]?o.role:'fa';state.set=SETS[o.set]?o.set:'core';state.answered=+o.answered||0;state.stories=Array.isArray(o.stories)?o.stories:[];state.seen=o.seen&&typeof o.seen==='object'?o.seen:{};if(o.ai&&typeof o.ai==='object')state.ai={day:String(o.ai.day||''),used:+o.ai.used||0};}}}catch(e){}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
 function $(id){return document.getElementById(id);}
 function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
@@ -321,7 +322,15 @@ async function callAI(payload){
 /* The server sends 'rate_limited' when the AI itself is busy; any other 429 or "limit" error means today's free reviews are used up. */
 function isDailyLimit(e){return !!e&&e.code!=='rate_limited'&&(e.status===429||/limit|quota|cap/i.test(String(e.code||'')));}
 var DAILY_MSG='You’ve used today’s AI reviews. They reset at midnight Arizona time.';
-function remainingNote(d){return d&&typeof d.remaining==='number'&&d.remaining>=0?'<p class="small" style="margin-top:12px">'+d.remaining+' AI review'+(d.remaining===1?'':'s')+' left today.</p>':'';}
+/* The server's count can lag about a minute, so this device also counts its own reviews and shows whichever number is lower. */
+var DAILY_REVIEWS=15;
+function phxDay(){return new Date(Date.now()-7*3600000).toISOString().slice(0,10);}
+function countReview(){var d=phxDay();if(state.ai.day!==d)state.ai={day:d,used:0};state.ai.used++;save();}
+function remainingNote(d){
+  if(!d||typeof d.remaining!=='number'||d.remaining<0)return '';
+  var left=d.remaining;if(state.ai.day===phxDay())left=Math.min(left,Math.max(0,DAILY_REVIEWS-state.ai.used));
+  return '<p class="small" style="margin-top:12px">'+left+' AI review'+(left===1?'':'s')+' left today.</p>';
+}
 
 /* ---------- practice ---------- */
 var order=[],pos=0;
@@ -360,18 +369,42 @@ function starRow(st,soft){
   var names=[['situation','Situation'],['task','Task'],['action','Action'],['result','Result']];
   return '<div class="star">'+names.map(function(n){var ok=st[n[0]];return '<div class="'+(ok?'ok':(soft?'soft':'miss'))+'">'+n[1]+'<br>'+(ok?'\u2713':(soft?'add more':'missing'))+'</div>';}).join('')+'</div>';
 }
+/* Story questions use STAR. Motivation and role knowledge questions get their own checklist. */
+var CHECKS={
+  motivation:[['real','Real reason'],['you','About you'],['job','Knows the job'],['finish','Strong finish']],
+  know:[['steps','Clear steps'],['safety','Safety first'],['passenger','Calm and kind'],['help','Asks for help']]
+};
+function checkRow(mode,c){
+  return '<div class="star">'+CHECKS[mode].map(function(n){var ok=c[n[0]];return '<div class="'+(ok?'ok':'soft')+'">'+n[1]+'<br>'+(ok?'\u2713':'add more')+'</div>';}).join('')+'</div>';
+}
+function modeFor(kind){return kind==='Motivation'?'motivation':(kind==='Role knowledge'?'know':'story');}
 function renderAI(d,raw){
   var n=Math.max(1,Math.min(5,Math.round(+d.score||0)));
   var h='<div class="score">'+lights(n)+'<b>'+n+' of 5</b></div>';
   h+='<p style="margin-top:8px">'+esc(d.summary||'')+'</p>';
-  h+=starRow(d.star||{});
+  if(CHECKS[d.mode])h+=checkRow(d.mode,d.checks||{});else if(d.mode!=='none')h+=starRow(d.star||{});
   if(d.worked&&d.worked.length)h+='<h3>What worked</h3><ul>'+d.worked.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
   if(d.improve&&d.improve.length)h+='<h3>Make it stronger</h3><ul>'+d.improve.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
   if(d.stronger)h+='<h3>A stronger version</h3><div class="better">'+esc(d.stronger)+'</div><p class="small">Use it for ideas, then say it in your own words. Interviewers can tell when an answer is memorized.</p>';
   return h+remainingNote(raw);
 }
-function renderLocal(t,why){
+function renderLocal(t,why,mode){
   var st=starGuess(t),words=t.trim().split(/\s+/).filter(Boolean).length,notes=[];
+  var intro=why==='daily'?DAILY_MSG+' Here\u2019s a quick check in the meantime.':'Live AI feedback couldn\u2019t be reached just now, so this is a quick check. Try again in a minute for a full review.';
+  if(mode==='motivation'||mode==='know'){
+    if(words<40)notes.push('This is short. Aim for about one minute out loud.');
+    if(words>300)notes.push('This is long. Keep it to about one minute out loud.');
+    if(mode==='motivation'){
+      notes.push('Give one real reason that goes beyond travel perks.');
+      notes.push('Connect it to you: something you\u2019re good at or a moment that shows it.');
+      notes.push('End with why this job is your next step.');
+    }else{
+      notes.push('Say your steps in order: first, then, next.');
+      notes.push('Mention safety wherever it matters.');
+      notes.push('Say how you\u2019d talk to the person, and when you\u2019d bring in a lead or supervisor.');
+    }
+    return '<div class="score"><b>Quick check</b></div><p class="small" style="margin-top:4px">'+intro+'</p><h3>Make it stronger</h3><ul>'+notes.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
+  }
   if(words<60)notes.push('This is short. Most strong answers run about 150 to 300 words, or one to two minutes out loud.');
   if(words>380)notes.push('This is long. Trim the setup and spend your time on what you did.');
   if(!st.situation)notes.push('Set the scene in a sentence: where you were and what was happening.');
@@ -379,34 +412,37 @@ function renderLocal(t,why){
   if(!st.action)notes.push('Say exactly what you did, using "I." Interviewers want your actions, not the team\u2019s.');
   if(!st.result)notes.push('Finish with how it turned out. A number or a customer\u2019s reaction makes it stick.');
   if(!notes.length)notes.push('Nice structure. Read it out loud once and time yourself.');
-  var intro=why==='daily'?DAILY_MSG+' Here\u2019s a quick structure check in the meantime.':'Live AI feedback couldn\u2019t be reached just now, so this is a quick structure check. Try again in a minute for a full review.';
   return '<div class="score"><b>Quick check</b></div><p class="small" style="margin-top:4px">'+intro+'</p>'+starRow(st,true)+'<h3>Make it stronger</h3><ul>'+notes.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
 }
-function cleanFeedback(d){
+function cleanFeedback(d,mode){
   if(!d||typeof d!=='object')return null;
   var arr=function(a){return Array.isArray(a)?a.map(function(x){return String(x==null?'':x);}).filter(Boolean).slice(0,5):[];};
   var s=d.star&&typeof d.star==='object'?d.star:{};
   var out={score:+d.score,summary:String(d.summary||''),worked:arr(d.worked),improve:arr(d.improve),stronger:String(d.stronger||''),
     star:{situation:!!s.situation,task:!!s.task,action:!!s.action,result:!!s.result}};
+  /* Use the server's checklist only when it matches this question's type. */
+  if(CHECKS[mode]&&d.mode===mode&&d.checks&&typeof d.checks==='object'){
+    out.mode=mode;out.checks={};CHECKS[mode].forEach(function(n){out.checks[n[0]]=d.checks[n[0]]===true;});
+  }else if(CHECKS[mode])out.mode='none'; /* never show STAR boxes on a non-story question */
   if(!(out.score>=1&&out.score<=5)||!out.summary)return null;
   return out;
 }
 var busy=false;
 $('btnFeedback').addEventListener('click',async function(){
   if(busy)return;
-  var t=$('answer').value.trim(),q=curQ(),btn=this,why='';
+  var t=$('answer').value.trim(),q=curQ(),btn=this,why='',mode=modeFor(q[0]);
   $('fbError').hidden=true;
   if(t.split(/\s+/).filter(Boolean).length<8){$('fbError').textContent='Write at least a few sentences first, the way you\u2019d answer out loud.';$('fbError').hidden=false;return;}
   busy=true;btn.disabled=true;
   var html=null;
   $('thinking').hidden=false;
-  try{var res=await callAI({type:'feedback',role:state.role,question:q[1],tip:q[2],answer:t.slice(0,4000)});var d=cleanFeedback(res.feedback);if(d)html=renderAI(d,res);}
+  try{var res=await callAI({type:'feedback',role:state.role,kind:q[0],question:q[1],tip:q[2],answer:t.slice(0,4000)});countReview();var d=cleanFeedback(res.feedback,mode);if(d)html=renderAI(d,res);}
   catch(e){
     if(e&&e.code==='rate_limited'){$('fbError').textContent='The AI coach is busy right now. Wait a minute and try again.';$('fbError').hidden=false;}
     else if(isDailyLimit(e))why='daily';
   }
   $('thinking').hidden=true;
-  if(!html&&$('fbError').hidden)html=renderLocal(t,why);
+  if(!html&&$('fbError').hidden)html=renderLocal(t,why,mode);
   if(html){$('feedback').innerHTML=html;$('feedback').hidden=false;
     var k=state.set+':'+q[1];if(!state.seen[k]){state.seen[k]=1;state.answered++;save();stats();}}
   busy=false;btn.disabled=false;
@@ -437,7 +473,7 @@ $('storyList').addEventListener('click',async function(e){
   if(b.hasAttribute('data-polish')){
     var j=+b.getAttribute('data-polish'),s=state.stories[j],st=document.querySelector('[data-status="'+j+'"]');
     b.disabled=true;st.textContent='Writing your answer… this can take up to a minute.';
-    try{var r=await callAI({type:'polish',role:state.role,s:s.s,t:s.t||'',a:s.a,r:s.r});var txt=(r&&r.text||'').trim();if(txt){s.polished=txt;save();renderStories();return;}st.textContent='No answer came back. Try again.';}
+    try{var r=await callAI({type:'polish',role:state.role,s:s.s,t:s.t||'',a:s.a,r:s.r});countReview();var txt=(r&&r.text||'').trim();if(txt){s.polished=txt;save();renderStories();return;}st.textContent='No answer came back. Try again.';}
     catch(err){st.textContent=err&&err.code==='rate_limited'?'The AI coach is busy right now. Wait a minute and try again.':(isDailyLimit(err)?DAILY_MSG:(err&&err.code==='network'?'Couldn\u2019t connect. Check your internet and try again.':'That didn\u2019t work. Try again.'));}
     b.disabled=false;
   }
