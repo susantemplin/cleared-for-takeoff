@@ -335,7 +335,7 @@ function remainingNote(d){
 /* ---------- question stats: counts only (shown / skipped), no answers ---------- */
 var tried=false;
 function track(ev,q){
-  try{fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},keepalive:true,
+  try{fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},keepalive:true,
     body:JSON.stringify({type:'event',event:ev,kind:q[0],question:q[1],set:state.set})}).catch(function(){});}catch(e){}
 }
 
