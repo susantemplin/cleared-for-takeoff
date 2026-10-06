@@ -332,6 +332,13 @@ function remainingNote(d){
   return '<p class="small" style="margin-top:12px">'+left+' AI review'+(left===1?'':'s')+' left today.</p>';
 }
 
+/* ---------- question stats: counts only (shown / skipped), no answers ---------- */
+var tried=false;
+function track(ev,q){
+  try{fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},keepalive:true,
+    body:JSON.stringify({type:'event',event:ev,kind:q[0],question:q[1],set:state.set})}).catch(function(){});}catch(e){}
+}
+
 /* ---------- practice ---------- */
 var order=[],pos=0;
 function list(){return SETS[state.set][state.role];}
@@ -343,13 +350,14 @@ function showQ(){
   $('qCount').textContent='Question '+(pos+1)+' of '+order.length;
   $('answer').value='';$('feedback').hidden=true;$('fbError').hidden=true;$('thinking').hidden=true;
   var d=document.querySelector('.hint');if(d)d.open=false;
+  tried=false;track('shown',q);
 }
 function showSet(){
   ['core','know'].forEach(function(s){var b=document.querySelector('[data-set="'+s+'"]');b.setAttribute('aria-pressed',s===state.set?'true':'false');});
   $('setNote').textContent=SET_NOTES[state.set];
 }
 function newRound(){order=shuffle(list().length);pos=0;showSet();showQ();}
-$('btnNext').addEventListener('click',function(){var last=order[pos];pos=(pos+1)%order.length;if(pos===0){order=shuffle(list().length);if(order.length>1&&order[0]===last){order.push(order.shift());}}showQ();});
+$('btnNext').addEventListener('click',function(){if(!tried)track('skipped',curQ());var last=order[pos];pos=(pos+1)%order.length;if(pos===0){order=shuffle(list().length);if(order.length>1&&order[0]===last){order.push(order.shift());}}showQ();});
 document.querySelectorAll('.sets button').forEach(function(b){
   b.addEventListener('click',function(){var s=b.getAttribute('data-set');if(s===state.set)return;state.set=s;save();newRound();});
 });
@@ -377,6 +385,11 @@ var CHECKS={
 function checkRow(mode,c){
   return '<div class="star">'+CHECKS[mode].map(function(n){var ok=c[n[0]];return '<div class="'+(ok?'ok':'soft')+'">'+n[1]+'<br>'+(ok?'\u2713':'add more')+'</div>';}).join('')+'</div>';
 }
+var STRONGER_NOTE={
+  story:'Fill in any [brackets] with what really happened, then say it in your own words. Interviewers can tell when an answer is memorized.',
+  motivation:'We added ideas you didn\u2019t mention. Only use what fits you, fill in any [brackets] with your own details, and say it in your own words.',
+  know:'We added ideas you didn\u2019t mention. Only use what fits you, and say it in your own words.'
+};
 function modeFor(kind){return kind==='Motivation'?'motivation':(kind==='Role knowledge'?'know':'story');}
 function renderAI(d,raw){
   var n=Math.max(1,Math.min(5,Math.round(+d.score||0)));
@@ -385,7 +398,7 @@ function renderAI(d,raw){
   if(CHECKS[d.mode])h+=checkRow(d.mode,d.checks||{});else if(d.mode!=='none')h+=starRow(d.star||{});
   if(d.worked&&d.worked.length)h+='<h3>What worked</h3><ul>'+d.worked.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
   if(d.improve&&d.improve.length)h+='<h3>Make it stronger</h3><ul>'+d.improve.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
-  if(d.stronger)h+='<h3>A stronger version</h3><div class="better">'+esc(d.stronger)+'</div><p class="small">Use it for ideas, then say it in your own words. Interviewers can tell when an answer is memorized.</p>';
+  if(d.stronger)h+='<h3>A stronger version</h3><div class="better">'+esc(d.stronger)+'</div><p class="small">'+(STRONGER_NOTE[d.mode]||STRONGER_NOTE.story)+'</p>';
   return h+remainingNote(raw);
 }
 function renderLocal(t,why,mode){
@@ -433,10 +446,10 @@ $('btnFeedback').addEventListener('click',async function(){
   var t=$('answer').value.trim(),q=curQ(),btn=this,why='',mode=modeFor(q[0]);
   $('fbError').hidden=true;
   if(t.split(/\s+/).filter(Boolean).length<8){$('fbError').textContent='Write at least a few sentences first, the way you\u2019d answer out loud.';$('fbError').hidden=false;return;}
-  busy=true;btn.disabled=true;
+  busy=true;btn.disabled=true;tried=true;
   var html=null;
   $('thinking').hidden=false;
-  try{var res=await callAI({type:'feedback',role:state.role,kind:q[0],question:q[1],tip:q[2],answer:t.slice(0,4000)});countReview();var d=cleanFeedback(res.feedback,mode);if(d)html=renderAI(d,res);}
+  try{var res=await callAI({type:'feedback',role:state.role,kind:q[0],set:state.set,question:q[1],tip:q[2],answer:t.slice(0,4000)});countReview();var d=cleanFeedback(res.feedback,mode);if(d)html=renderAI(d,res);}
   catch(e){
     if(e&&e.code==='rate_limited'){$('fbError').textContent='The AI coach is busy right now. Wait a minute and try again.';$('fbError').hidden=false;}
     else if(isDailyLimit(e))why='daily';
