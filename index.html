@@ -119,6 +119,8 @@ textarea{width:100%;min-height:150px;margin-top:8px;padding:12px 14px;border:1.5
 .feedback ul{margin:4px 0;padding-left:20px}
 .feedback p{margin:4px 0}
 .better{background:var(--tint);border-radius:8px;padding:12px 14px;white-space:pre-wrap}
+.better .fill{background:var(--card);color:var(--sky);font-weight:600;border:1px dashed var(--sky);border-radius:5px;padding:0 4px}
+.whyb{margin:8px 0 0;padding-left:20px;font-size:15px;color:var(--ink2)}
 .fbacts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .fbacts .btn{flex:1;min-width:150px;font-size:16px;padding:11px 14px}
 .past{margin-top:14px;font-size:15px}
@@ -559,7 +561,7 @@ function markDay(){var d=localDay();if(state.days.indexOf(d)<0){state.days.push(
 /* ---------- AI (through the Cleared for Takeoff server) ---------- */
 var API_URL='https://cleared-for-takeoff-api.susantemplin.workers.dev';
 async function callAI(payload){
-  var ctl=new AbortController(),timer=setTimeout(function(){ctl.abort();},60000),r,d;
+  var ctl=new AbortController(),timer=setTimeout(function(){ctl.abort();},90000),r,d;
   try{r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctl.signal});}
   catch(e){var ne=new Error('network');ne.code='network';ne.status=0;throw ne;}
   finally{clearTimeout(timer);}
@@ -760,10 +762,24 @@ function checkRow(mode,c){
   return '<div class="star">'+CHECKS[mode].map(function(n){var ok=c[n[0]];return '<div class="'+(ok?'ok':'soft')+'">'+n[1]+'<br>'+(ok?'✓':'add more')+'</div>';}).join('')+'</div>';
 }
 var STRONGER_NOTE={
-  story:'Fill in any [brackets] with what really happened, then say it in your own words. Interviewers can tell when an answer is memorized.',
-  motivation:'We added ideas you didn’t mention. Only use what fits you, fill in any [brackets] with your own details, and say it in your own words.',
+  story:'Fill in the [highlighted] spots with what really happened, then say it in your own words. Interviewers can tell when an answer is memorized.',
+  motivation:'We added ideas you didn’t mention. Only use what fits you, fill in the [highlighted] spots with your own details, and say it in your own words.',
   know:'We added ideas you didn’t mention. Only use what fits you, and say it in your own words.'
 };
+var STRONGER_NOTE_PLAIN={
+  story:'Say it in your own words. Interviewers can tell when an answer is memorized.',
+  motivation:'We added ideas you didn’t mention. Only use what fits you, and say it in your own words.',
+  know:STRONGER_NOTE.know
+};
+function hasFill(t){return /\[[^\]]+\]/.test(t||'');}
+/* Shows [placeholders] as highlighted spots to fill in. */
+function fillHTML(t){return esc(t).replace(/\[([^\]]+)\]/g,'<span class="fill">[$1]</span>');}
+/* Which of the 5 must-have story types a question's stronger answer counts toward. */
+function typesForQuestion(text){
+  var i=SHARED.findIndex(function(x){return x[1]===text;});if(i<0)return [];
+  var main=TYPES.filter(function(T){return T[2][0]===i;});
+  return (main.length?main:TYPES.filter(function(T){return T[2].indexOf(i)>=0;}).slice(0,2)).map(function(T){return T[0];});
+}
 function modeFor(kind){return kind==='Motivation'?'motivation':(kind==='Role knowledge'?'know':'story');}
 var lastStronger='';
 function pastHTML(hist){
@@ -781,7 +797,10 @@ function renderAI(d,prev,hist){
   if(CHECKS[d.mode])h+=checkRow(d.mode,d.checks||{});else if(d.mode!=='none')h+=starRow(d.star||{});
   if(d.worked&&d.worked.length)h+='<h3>What worked</h3><ul>'+d.worked.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
   if(d.improve&&d.improve.length)h+='<h3>Make it stronger</h3><ul>'+d.improve.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
-  if(d.stronger)h+='<h3>A stronger version</h3><div class="better">'+esc(d.stronger)+'</div><p class="small">'+(STRONGER_NOTE[d.mode]||STRONGER_NOTE.story)+'</p>';
+  if(d.stronger){var notes=hasFill(d.stronger)?STRONGER_NOTE:STRONGER_NOTE_PLAIN;
+    h+='<h3>A stronger version</h3><div class="better">'+fillHTML(d.stronger)+'</div>';
+    if(d.changes&&d.changes.length)h+='<p class="small" style="margin-top:8px"><b>Why it’s stronger</b></p><ul class="whyb">'+d.changes.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
+    h+='<p class="small">'+(notes[d.mode]||notes.story)+'</p>';}
   h+='<div class="fbacts"><button class="btn btn-go" data-act="retry">Edit and try again</button>'+(d.stronger?'<button class="btn btn-plain" data-act="savestronger">Save to My stories</button>':'')+'</div>';
   h+=pastHTML(hist);
   return h;
@@ -816,7 +835,7 @@ function cleanFeedback(d,mode){
   if(!d||typeof d!=='object')return null;
   var arr=function(a){return Array.isArray(a)?a.map(function(x){return String(x==null?'':x);}).filter(Boolean).slice(0,5):[];};
   var s=d.star&&typeof d.star==='object'?d.star:{};
-  var out={score:+d.score,summary:String(d.summary||''),worked:arr(d.worked),improve:arr(d.improve),stronger:String(d.stronger||''),
+  var out={score:+d.score,summary:String(d.summary||''),worked:arr(d.worked),improve:arr(d.improve),stronger:String(d.stronger||''),changes:arr(d.changes).slice(0,3),
     star:{situation:!!s.situation,task:!!s.task,action:!!s.action,result:!!s.result}};
   /* Use the server's checklist only when it matches this question's type. */
   if(CHECKS[mode]&&d.mode===mode&&d.checks&&typeof d.checks==='object'){
@@ -846,7 +865,7 @@ $('btnFeedback').addEventListener('click',async function(){
       var hist=state.history[k]||[],prev=hist.length?hist[hist.length-1].score:0;sc=Math.max(1,Math.min(5,Math.round(d.score)));
       hist.push({d:localDay(),score:sc,text:t.slice(0,600)});if(hist.length>5)hist=hist.slice(-5);state.history[k]=hist;
       html=renderAI(d,prev,hist.slice(0,-1));perfect=sc===5;markDay();
-      if(my===fbToken)lastStronger=d.stronger?{q:q[1],text:d.stronger}:null;
+      if(my===fbToken)lastStronger=d.stronger?{q:q[1],kind:q[0],set:state.set,text:d.stronger}:null;
     }}
   catch(e){
     if(e&&e.code==='rate_limited')errMsg='The AI coach is busy right now. Wait a minute and try again.';
@@ -868,8 +887,10 @@ $('feedback').addEventListener('click',function(e){
   var b=e.target.closest('[data-act]');if(!b)return;var act=b.getAttribute('data-act');
   if(act==='retry'){var a=$('answer');a.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){a.focus();},350);}
   if(act==='savestronger'&&lastStronger){
-    state.stories.unshift({id:'s'+Date.now().toString(36),title:'Stronger answer: '+lastStronger.q.slice(0,48)+(lastStronger.q.length>48?'…':''),s:'',t:'',a:'',r:'',polished:lastStronger.text,types:[]});
-    save();stats();renderStories();renderMusts();b.disabled=true;b.textContent='Saved ✓';toast('Saved to My stories. Fill in the [brackets] with what really happened.');}
+    var tps=(lastStronger.set==='core'&&lastStronger.kind==='Behavioral')?typesForQuestion(lastStronger.q):[];
+    state.stories.unshift({id:'s'+Date.now().toString(36),title:'Stronger answer: '+lastStronger.q.slice(0,48)+(lastStronger.q.length>48?'…':''),s:'',t:'',a:'',r:'',polished:lastStronger.text,types:tps});
+    save();stats();renderStories();renderMusts();b.disabled=true;b.textContent='Saved ✓';
+    toast(hasFill(lastStronger.text)?'Saved to My stories. Fill in the [highlighted] spots with what really happened.':'Saved to My stories.');}
 });
 
 /* ---------- confetti for a 5 of 5 ---------- */
