@@ -18,75 +18,97 @@
 <style>
 :root{
   --paper:#F6F8FB;--card:#FFFFFF;--ink:#14304F;--ink2:#4B5E75;--line:#D8E0EA;
-  --yellow:#F2B90C;--sky:#3E7CB1;--green:#2F8F5B;--red:#B83A2E;--tint:#EAF1F8;
-  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --yellow:#F2B90C;--sky:#3E7CB1;--green:#2F8F5B;--red:#B83A2E;--tint:#EAF1F8;--navbg:#FFFFFF;
+  box-sizing:border-box;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --paper:#0F1B2A;--card:#16263A;--ink:#E8EEF5;--ink2:#A9B8C9;--line:#2A3D55;--tint:#1B2F47;--sky:#6FA6D6;--green:#4DB27B;--red:#E0705F;}}
-:root[data-theme="dark"]{--paper:#0F1B2A;--card:#16263A;--ink:#E8EEF5;--ink2:#A9B8C9;--line:#2A3D55;--tint:#1B2F47;--sky:#6FA6D6;--green:#4DB27B;--red:#E0705F;}
+  --paper:#0F1B2A;--card:#16263A;--ink:#E8EEF5;--ink2:#A9B8C9;--line:#2A3D55;--tint:#1B2F47;--sky:#6FA6D6;--green:#4DB27B;--red:#E0705F;--navbg:#122133;}}
+:root[data-theme="dark"]{--paper:#0F1B2A;--card:#16263A;--ink:#E8EEF5;--ink2:#A9B8C9;--line:#2A3D55;--tint:#1B2F47;--sky:#6FA6D6;--green:#4DB27B;--red:#E0705F;--navbg:#122133;}
 *,*::before,*::after{box-sizing:inherit}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
 body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.55 Barlow,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
 h1,h2,h3,.cond{font-family:"Barlow Condensed","Arial Narrow",Barlow,sans-serif;letter-spacing:.2px}
-.wrap{max-width:640px;margin:0 auto;padding:16px 16px 40px}
+.wrap{max-width:640px;margin:0 auto;padding:12px 16px calc(96px + env(safe-area-inset-bottom,0px))}
 button,select,textarea,input{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+[hidden]{display:none!important}
 
-/* boarding pass header */
-.pass{display:flex;background:var(--ink);color:#fff;border-radius:14px;overflow:hidden;position:relative}
-:root[data-theme="dark"] .pass{background:#0A1420}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pass{background:#0A1420}}
-.pass-main{flex:1;padding:18px 18px 16px;min-width:0}
-.pass h1{margin:0;font-size:34px;line-height:1;font-weight:700}
-.pass p{margin:6px 0 0;color:#C9D6E4;font-size:15px}
-.pass-stub{width:108px;flex:none;border-left:2px dashed rgba(255,255,255,.35);padding:14px 12px;display:flex;flex-direction:column;justify-content:center;gap:8px;background:rgba(242,185,12,.12)}
-.stub-row{line-height:1.1}
-.stub-k{font-size:12px;color:#C9D6E4}
-.stub-v{font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:700;color:var(--yellow)}
-.pass::before,.pass::after{content:"";position:absolute;right:99px;width:18px;height:18px;border-radius:50%;background:var(--paper)}
-.pass::before{top:-9px}.pass::after{bottom:-9px}
-
-.role{margin:16px 0 4px}
-.role label{display:block;font-weight:600;font-size:15px;margin-bottom:6px}
-.role select{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--card)}
-
-nav.tabs{display:flex;gap:6px;margin:18px 0 14px;border-bottom:2px solid var(--line)}
-nav.tabs button{flex:1;background:none;border:0;padding:10px 4px 12px;font-family:"Barlow Condensed",sans-serif;font-size:20px;font-weight:600;color:var(--ink2);border-bottom:4px solid transparent;margin-bottom:-2px}
-nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--yellow)}
+/* compact header */
+.top{position:sticky;top:0;z-index:20;background:var(--ink);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px}
+:root[data-theme="dark"] .top{background:#0A1420}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .top{background:#0A1420}}
+.top-in{max-width:640px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:34px;height:34px;border-radius:9px;flex:none}
+.brand h1{margin:0;font-size:26px;line-height:1;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jobchip{background:rgba(242,185,12,.16);border:1.5px solid rgba(242,185,12,.7);color:#fff;border-radius:999px;padding:2px 10px;font-size:13.5px;font-weight:600;line-height:1.4;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pp{font-size:13.5px;font-weight:600;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.10);color:#DCE6F0;line-height:1.4}
+.pp b{color:var(--yellow)}
 
 /* question set switch */
-.sets{display:flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
-.sets button{flex:1;border:0;background:none;padding:10px 8px;font-weight:600;font-size:15px;color:var(--ink2);line-height:1.2}
+.sets{display:flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card);margin-top:4px}
+.sets button{flex:1;border:0;background:none;padding:9px 8px;font-weight:600;font-size:15px;color:var(--ink2);line-height:1.2}
 .sets button+button{border-left:1.5px solid var(--line)}
 .sets button[aria-pressed="true"]{background:var(--ink);color:#fff}
 :root[data-theme="dark"] .sets button[aria-pressed="true"]{background:var(--yellow);color:#14304F}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sets button[aria-pressed="true"]{background:var(--yellow);color:#14304F}}
-.set-note{margin:6px 0 12px;font-size:14px;color:var(--ink2)}
+.set-note{margin:6px 0 10px;font-size:14px;color:var(--ink2);line-height:1.4}
 
-/* flight strip question card */
-.strip{background:var(--card);border:1.5px solid var(--line);border-left:10px solid var(--yellow);border-radius:10px;padding:14px 16px}
-.strip .meta{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--ink2)}
+/* question card */
+.strip{background:var(--card);border:1.5px solid var(--line);border-left:10px solid var(--yellow);border-radius:10px;padding:12px 16px 14px}
+.strip .meta{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px;color:var(--ink2)}
+.qpick{background:var(--tint);border:0;border-radius:999px;padding:4px 12px;font-size:14px;font-weight:600;color:var(--sky)}
 .strip h2{margin:6px 0 0;font-size:26px;line-height:1.15;font-weight:600}
 .qhelp{margin:10px 0 0;padding:8px 12px;border-radius:8px;background:var(--tint);font-size:15px}
 .hint{margin-top:10px;font-size:15px;color:var(--ink2)}
 .hint summary{cursor:pointer;color:var(--sky);font-weight:600}
-textarea{width:100%;min-height:150px;margin-top:12px;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);resize:vertical;line-height:1.5}
-.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+
+/* answer tools */
+.tools{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.tool{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:15px;font-weight:600;color:var(--ink)}
+.tool svg{width:18px;height:18px;flex:none}
+.tool.mic{background:var(--ink);color:#fff;border-color:var(--ink)}
+:root[data-theme="dark"] .tool.mic{background:var(--yellow);color:#14304F;border-color:var(--yellow)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tool.mic{background:var(--yellow);color:#14304F;border-color:var(--yellow)}}
+.tool.mic.on{background:var(--red);border-color:var(--red);color:#fff;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 7px rgba(184,58,46,.18)}}
+.tool.timer.warm{border-color:var(--yellow);background:rgba(242,185,12,.18)}
+.tool.timer.hot{border-color:var(--red);background:rgba(184,58,46,.14);color:var(--red)}
+.anshint{margin:10px 0 0;font-size:14px;color:var(--ink2);line-height:1.4}
+textarea{width:100%;min-height:150px;margin-top:8px;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);resize:vertical;line-height:1.5}
+.draftnote{font-size:13px;color:var(--ink2);height:18px;margin-top:2px;transition:opacity .3s}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
 .btn{border:0;border-radius:10px;padding:13px 18px;font-weight:600;font-size:17px}
 .btn-go{background:var(--ink);color:#fff;flex:1}
 :root[data-theme="dark"] .btn-go{background:var(--yellow);color:#14304F}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn-go{background:var(--yellow);color:#14304F}}
 .btn-plain{background:var(--tint);color:var(--ink)}
+.btn-line{background:none;border:1.5px solid var(--line);color:var(--ink)}
 .btn[disabled]{opacity:.55;cursor:default}
 .small{font-size:14px;color:var(--ink2)}
+.left{margin:8px 0 0;font-size:14px;color:var(--ink2);text-align:center}
+
+/* plane loader */
+.thinking{margin-top:16px;background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:14px 16px}
+.runway{position:relative;height:34px;margin:2px 0 8px;border-bottom:3px dashed var(--line)}
+.runway span{position:absolute;bottom:-4px;left:0;font-size:26px;line-height:1;animation:taxi 3.2s linear infinite}
+@keyframes taxi{0%{left:-8%;transform:translateY(0)}70%{left:70%;transform:translateY(0)}100%{left:105%;transform:translateY(-26px) rotate(-12deg)}}
+@media (prefers-reduced-motion:reduce){.runway span{animation:none;left:45%}}
+.thinking b{display:block;font-size:16px}
+.thinking p{margin:4px 0 0;font-size:15px;color:var(--ink2);min-height:46px}
 
 .feedback{margin-top:16px;background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:16px}
-.score{display:flex;align-items:center;gap:12px}
+.score{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .lights{display:flex;gap:6px}
 .lights i{width:16px;height:16px;border-radius:50%;background:var(--line)}
 .lights i.on{background:var(--green)}
 .score b{font-family:"Barlow Condensed",sans-serif;font-size:22px}
+.trend{font-size:14px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--tint);color:var(--ink2)}
+.trend.up{background:rgba(47,143,91,.15);color:var(--green)}
+.perfect{margin:0 0 12px;padding:12px 14px;border-radius:10px;background:rgba(242,185,12,.18);border:1.5px solid var(--yellow);font-weight:600}
+.perfect strong{display:block;font-family:"Barlow Condensed",sans-serif;font-size:24px}
 .star{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0}
 .star div{text-align:center;padding:8px 2px;border-radius:8px;background:var(--tint);font-size:14px;line-height:1.2}
 .star div.ok{background:rgba(47,143,91,.15);color:var(--green);font-weight:600}
@@ -96,21 +118,45 @@ textarea{width:100%;min-height:150px;margin-top:12px;padding:12px 14px;border:1.
 .feedback ul{margin:4px 0;padding-left:20px}
 .feedback p{margin:4px 0}
 .better{background:var(--tint);border-radius:8px;padding:12px 14px;white-space:pre-wrap}
+.fbacts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.fbacts .btn{flex:1;min-width:150px;font-size:16px;padding:11px 14px}
+.past{margin-top:14px;font-size:15px}
+.past summary{cursor:pointer;color:var(--sky);font-weight:600}
+.past li{margin:6px 0}
 .err{margin-top:12px;padding:10px 14px;border-radius:8px;background:rgba(184,58,46,.1);color:var(--red)}
-.thinking{margin-top:14px;color:var(--ink2);font-style:italic}
 
 /* stories */
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;margin-top:12px}
+.card h2,.card h3{margin:0 0 4px}
+.musts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.must{font-size:14px;font-weight:600;padding:5px 11px;border-radius:999px;background:var(--tint);color:var(--ink2)}
+.must.have{background:rgba(47,143,91,.15);color:var(--green)}
 .field{margin-top:12px}
-.field label{display:block;font-weight:600}
+.field label,.field .lab{display:block;font-weight:600}
 .field .small{display:block;margin-bottom:4px}
 .field input,.field textarea{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);min-height:0;margin-top:4px}
 .field textarea{min-height:76px}
+.types{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.types button{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:15px;font-weight:600;color:var(--ink2)}
+.types button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+:root[data-theme="dark"] .types button[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow);color:#14304F}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .types button[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow);color:#14304F}}
 .story{background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;margin-top:12px}
-.story h3{margin:0 0 6px;font-size:21px}
+.story h3{margin:0 0 4px;font-size:22px}
+.story p{margin:6px 0}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px}
+.tags span{font-size:13px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--tint);color:var(--ink2)}
 .story .polished{white-space:pre-wrap;margin-top:8px;background:var(--tint);border-radius:8px;padding:10px 12px}
-.linkbtn{background:none;border:0;color:var(--sky);font-weight:600;padding:6px 0;margin-right:16px}
+.fits{margin-top:8px}
+.fits summary{cursor:pointer;color:var(--green);font-weight:600}
+.fits ul{list-style:none;margin:6px 0 0;padding:0}
+.fits li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.fits li button{flex:none;border:0;background:var(--tint);color:var(--sky);font-weight:600;border-radius:999px;padding:5px 12px;font-size:14px}
+.linkbtn{background:none;border:0;color:var(--sky);font-weight:600;padding:8px 0;margin-right:16px}
 .linkbtn.danger{color:var(--red)}
 .empty{padding:18px;border:2px dashed var(--line);border-radius:10px;text-align:center;color:var(--ink2);margin-top:12px}
+.backup{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.backup .btn{font-size:15px;padding:10px 14px}
 
 /* tips */
 .tip{border-top:1.5px solid var(--line);padding:14px 0}
@@ -118,95 +164,212 @@ textarea{width:100%;min-height:150px;margin-top:12px;padding:12px 14px;border:1.
 .tip h3{margin:0 0 4px;font-size:22px}
 .tip p{margin:0}
 .section-h{font-size:24px;margin:22px 0 4px}
+.count{font-family:"Barlow Condensed",sans-serif;font-size:34px;font-weight:700;line-height:1.1;margin:4px 0}
+.datebox{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.datebox input{padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);font-size:16px}
+.check{list-style:none;margin:8px 0 0;padding:0}
+.check li{border-top:1px solid var(--line)}
+.check label{display:flex;gap:12px;align-items:flex-start;padding:10px 0;cursor:pointer;line-height:1.4}
+.check input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--green)}
+.check input:checked+span{color:var(--ink2);text-decoration:line-through}
+.social{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.social a{flex:1;min-width:130px;text-align:center;text-decoration:none}
 footer{margin-top:28px;font-size:13px;color:var(--ink2);text-align:center}
 footer a{color:var(--sky);font-weight:600;margin:0 10px;display:inline-block;padding:6px 0}
-[hidden]{display:none!important}
+
+/* bottom nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;background:var(--navbg);border-top:1.5px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+nav.tabs .in{display:flex;max-width:640px;width:100%}
+nav.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;padding:6px 4px;font-size:13.5px;font-weight:600;color:var(--ink2);border-radius:10px}
+nav.tabs svg{width:24px;height:24px}
+nav.tabs button[aria-selected="true"]{color:var(--ink)}
+nav.tabs button[aria-selected="true"] svg{color:var(--yellow)}
+body.typing nav.tabs{display:none}
+body.typing .wrap{padding-bottom:24px}
+
+/* sheets */
+.veil{position:fixed;inset:0;z-index:50;background:rgba(10,20,32,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--paper);width:100%;max-width:640px;max-height:86vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet h2{margin:0 0 4px;font-size:26px}
+.sheet .x{float:right;border:0;background:var(--tint);border-radius:999px;width:36px;height:36px;font-size:20px;line-height:1;color:var(--ink)}
+.opt{display:block;width:100%;text-align:left;margin-top:8px;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);font-size:16px;line-height:1.35}
+.opt.sel{border-color:var(--yellow);box-shadow:inset 4px 0 0 var(--yellow)}
+.opt small{display:block;color:var(--ink2);font-size:13.5px;margin-top:2px}
+.opt .done{color:var(--green);font-weight:700}
+
+/* welcome */
+.welcome{position:fixed;inset:0;z-index:60;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;padding:24px 20px calc(24px + env(safe-area-inset-bottom,0px));overflow:auto}
+:root[data-theme="dark"] .welcome{background:#0A1420}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .welcome{background:#0A1420}}
+.wbox{max-width:460px;width:100%}
+.wbox img{width:72px;height:72px;border-radius:18px}
+.wbox h2{font-size:34px;line-height:1.05;margin:16px 0 8px}
+.wbox p{color:#C9D6E4;margin:0 0 8px}
+.wbox .opt{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.25);color:#fff;font-weight:600}
+.wbox .opt:hover{border-color:var(--yellow)}
+.dots{display:flex;gap:8px;margin:18px 0}
+.dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.3)}
+.dots i.on{background:var(--yellow);width:24px;border-radius:9px}
+.parts{display:grid;gap:8px;margin:12px 0}
+.parts div{background:rgba(255,255,255,.08);border-radius:10px;padding:10px 12px}
+.parts b{color:var(--yellow)}
+.wgo{width:100%;background:var(--yellow);color:#14304F;border:0;border-radius:12px;padding:14px;font-weight:700;font-size:18px;margin-top:8px}
+.wskip{background:none;border:0;color:#C9D6E4;margin-top:10px;width:100%;padding:8px;font-size:15px}
+
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:70;background:#14304F;color:#fff;padding:10px 16px;border-radius:999px;font-weight:600;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:90vw;text-align:center}
+#confetti{position:fixed;inset:0;z-index:80;pointer-events:none}
 @media (prefers-reduced-motion:no-preference){.feedback{animation:rise .25s ease-out}@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="pass">
-    <div class="pass-main">
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <img src="icon-192.png" alt="">
       <h1>Cleared for Takeoff</h1>
-      <p>Airline interview coach, built by someone who works the gate.</p>
     </div>
-    <div class="pass-stub" aria-label="Your progress">
-      <div class="stub-row"><div class="stub-k">Answered</div><div class="stub-v" id="statAnswered">0</div></div>
-      <div class="stub-row"><div class="stub-k">Stories</div><div class="stub-v" id="statStories">0</div></div>
-    </div>
-  </header>
-
-  <div class="role">
-    <label for="roleSel">The job you're going for</label>
-    <select id="roleSel">
-      <option value="fa">Flight attendant</option>
-      <option value="gate">Gate &amp; ticket agent</option>
-      <option value="ramp">Ramp agent</option>
-      <option value="res">Reservations &amp; customer care</option>
-    </select>
+    <div class="prog"><button class="jobchip" id="jobChip" aria-label="Change the job you're going for">Flight attendant &#9662;</button><span id="prog" style="display:contents" aria-live="polite"></span></div>
   </div>
+</header>
 
-  <nav class="tabs" role="tablist">
-    <button role="tab" id="t-practice" aria-selected="true" data-tab="practice">Practice</button>
-    <button role="tab" id="t-stories" aria-selected="false" data-tab="stories">My stories</button>
-    <button role="tab" id="t-tips" aria-selected="false" data-tab="tips">Insider tips</button>
-  </nav>
-
+<div class="wrap">
   <!-- PRACTICE -->
-  <section id="p-practice" role="tabpanel">
+  <section id="p-practice" role="tabpanel" aria-labelledby="t-practice">
     <div class="sets" role="group" aria-label="Question set">
       <button id="setCore" data-set="core" aria-pressed="true">Interview questions</button>
-      <button id="setKnow" data-set="know" aria-pressed="false">Role knowledge (optional)</button>
+      <button id="setKnow" data-set="know" aria-pressed="false">Airline scenarios</button>
     </div>
     <p class="set-note" id="setNote"></p>
     <div class="strip">
-      <div class="meta"><span id="qKind">Behavioral</span><span id="qCount">Question 1</span></div>
+      <div class="meta"><span id="qKind">Behavioral</span><button class="qpick" id="qCount" aria-haspopup="dialog">Question 1 of 30 &#9662;</button></div>
       <h2 id="qText">Loading…</h2>
       <p class="qhelp" id="qHelp"></p>
       <details class="hint"><summary>What they're listening for</summary><p id="qTip" style="margin:6px 0 0"></p></details>
     </div>
-    <label for="answer" class="small" style="display:block;margin-top:12px">Type your answer the way you'd say it out loud. Don't worry about spelling or typos. On a phone, tap the mic on your keyboard to talk it instead.</label>
+    <div class="tools">
+      <button class="tool mic" id="btnMic" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span>Tap to talk</span></button>
+      <button class="tool timer" id="btnTimer" aria-label="Practice timer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span id="timerTxt">Timer</span></button>
+      <button class="tool" id="btnUseStory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h7"/></svg><span>Use my story</span></button>
+    </div>
+    <p class="anshint" id="ansHint">Answer the way you'd say it out loud. Typos are fine.</p>
+    <label for="answer" class="small" style="position:absolute;left:-9999px">Your answer</label>
     <textarea id="answer" placeholder="One time at work…"></textarea>
+    <div class="draftnote" id="draftNote"></div>
     <div class="row">
       <button class="btn btn-go" id="btnFeedback">Get feedback</button>
       <button class="btn btn-plain" id="btnNext">Next question</button>
     </div>
-    <div id="thinking" class="thinking" hidden>Reviewing your answer… this can take up to a minute.</div>
+    <p class="left" id="leftNote"></p>
+    <div id="thinking" class="thinking" hidden aria-live="polite">
+      <div class="runway" aria-hidden="true"><span>&#9992;&#65039;</span></div>
+      <b>Reviewing your answer… this can take up to a minute.</b>
+      <p id="waitTip"></p>
+    </div>
     <div id="fbError" class="err" hidden></div>
     <div id="feedback" class="feedback" hidden></div>
   </section>
 
   <!-- STORIES -->
-  <section id="p-stories" role="tabpanel" hidden>
-    <p style="margin:0">Interviewers ask for real examples, and they can come from any job, school, volunteering, or family life. Build a few strong stories once, and you can bend them to fit almost any question.</p>
-    <div class="field"><label for="sTitle">Name this story</label><input id="sTitle" placeholder="The cancelled flight with a full gate"></div>
-    <div class="field"><label for="sS">Situation</label><span class="small">Where were you and what was going on?</span><textarea id="sS"></textarea></div>
-    <div class="field"><label for="sT">Task</label><span class="small">What was your job in that moment?</span><textarea id="sT"></textarea></div>
-    <div class="field"><label for="sA">Action</label><span class="small">What did you do, step by step? Say "I," not "we."</span><textarea id="sA"></textarea></div>
-    <div class="field"><label for="sR">Result</label><span class="small">How did it end? Numbers help: minutes saved, people helped, a thank-you.</span><textarea id="sR"></textarea></div>
-    <div class="row"><button class="btn btn-go" id="btnSaveStory">Save story</button></div>
-    <div id="storyMsg" class="err" hidden></div>
+  <section id="p-stories" role="tabpanel" aria-labelledby="t-stories" hidden>
+    <div class="card" style="margin-top:4px">
+      <h2 style="font-size:24px">Your one-story superpower</h2>
+      <p style="margin:0">One good story can answer many interview questions. Learn its 3 parts, then bend it to fit what they ask.</p>
+      <p class="small" style="margin:10px 0 0" id="mustNote"></p>
+      <div class="musts" id="musts"></div>
+    </div>
+
+    <button class="btn btn-go" id="btnNewStory" style="width:100%;margin-top:12px" hidden>+ New story</button>
+    <div class="card" id="storyForm">
+      <h3 id="formTitle" style="font-size:22px">Add a story</h3>
+      <div class="field"><label for="sTitle">Name this story</label><input id="sTitle" placeholder="The cancelled flight with a full gate"></div>
+      <div class="field"><span class="lab">What kind of story is it?</span><span class="small">Pick any that fit. This shows which questions it can answer.</span><div class="types" id="typePick"></div></div>
+      <div class="field"><label for="sS">The problem</label><span class="small">Where were you, and what went wrong?</span><textarea id="sS"></textarea></div>
+      <div class="field"><label for="sT">What was at stake <span class="small" style="display:inline">(optional)</span></label><span class="small">Why did it matter? What did you need to do?</span><textarea id="sT"></textarea></div>
+      <div class="field"><label for="sA">What I did</label><span class="small">Step by step. Say "I," not "we."</span><textarea id="sA"></textarea></div>
+      <div class="field"><label for="sR">How it ended</label><span class="small">The happy ending: a thank-you, minutes saved, people helped.</span><textarea id="sR"></textarea></div>
+      <div class="row"><button class="btn btn-go" id="btnSaveStory">Save story</button><button class="btn btn-plain" id="btnCancelStory" hidden>Cancel</button></div>
+      <div id="storyMsg" class="err" hidden></div>
+    </div>
+
     <h2 class="section-h">Saved stories</h2>
     <div id="storyList"></div>
+
+    <div class="card">
+      <h3 style="font-size:20px">Back up your stories</h3>
+      <p class="small" style="margin:0">Your stories are saved only on this phone. Keep a copy so you never lose them.</p>
+      <div class="backup">
+        <button class="btn btn-plain" id="btnEmail">Email them to me</button>
+        <button class="btn btn-plain" id="btnDownload">Save a backup file</button>
+        <button class="btn btn-line" id="btnRestore">Restore a backup</button>
+        <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+      </div>
+    </div>
   </section>
 
   <!-- TIPS -->
-  <section id="p-tips" role="tabpanel" hidden>
+  <section id="p-tips" role="tabpanel" aria-labelledby="t-tips" hidden>
+    <div class="card" style="margin-top:4px">
+      <h2 style="font-size:24px">Interview countdown</h2>
+      <div id="countOut"></div>
+      <div class="datebox">
+        <label for="ivDate" class="small">When is your interview?</label>
+        <input type="date" id="ivDate">
+        <button class="linkbtn" id="ivClear" hidden>Clear</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:24px">Interview-day checklist</h2>
+      <ul class="check" id="checklist"></ul>
+      <button class="linkbtn" id="checkReset">Reset checklist</button>
+    </div>
+
     <div id="tipsRole"></div>
     <h2 class="section-h">Interview day, any role</h2>
     <div id="tipsGeneral"></div>
-  </section>
 
-  <footer><p style="margin:0 0 8px">Practice tool only. Every airline runs its own hiring process, so check the job posting for exact requirements.</p><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a></footer>
+    <div class="card">
+      <h2 style="font-size:24px">Watch Interview Hacks</h2>
+      <p style="margin:0">Short animated episodes with real airport stories, like how one story can answer six interview questions.</p>
+      <div class="social">
+        <a class="btn btn-plain" href="https://www.tiktok.com/@clearedfortakeoffapp" target="_blank" rel="noopener">TikTok</a>
+        <a class="btn btn-plain" href="https://www.instagram.com/clearedfortakeoffapp/" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:24px">About this app</h2>
+      <p style="margin:0">Built by a gate agent at Phoenix Sky Harbor. Every question and tip comes from real airport experience, so you can walk into your interview ready.</p>
+      <div class="social">
+        <button class="btn btn-go" id="btnShare">Share with a friend</button>
+        <a class="btn btn-plain" href="mailto:clearedfortakeoffapp@gmail.com?subject=Cleared%20for%20Takeoff%20feedback">Tell us what to fix</a>
+      </div>
+    </div>
+
+    <footer><p style="margin:0 0 8px">Practice tool only. Every airline runs its own hiring process, so check the job posting for exact requirements.</p><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a></footer>
+  </section>
 </div>
+
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <div class="in">
+    <button role="tab" id="t-practice" aria-selected="true" data-tab="practice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Practice</button>
+    <button role="tab" id="t-stories" aria-selected="false" data-tab="stories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h7M8 11h5"/></svg>My stories</button>
+    <button role="tab" id="t-tips" aria-selected="false" data-tab="tips"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>Tips</button>
+  </div>
+</nav>
+
+<div id="veil" class="veil" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"><button class="x" id="sheetX" aria-label="Close">&times;</button><h2 id="sheetTitle"></h2><div id="sheetBody"></div></div></div>
+<div id="welcome" class="welcome" hidden><div class="wbox" id="wbox"></div></div>
+<div id="toast" class="toast" role="status" hidden></div>
+<canvas id="confetti" hidden></canvas>
 
 <script>
 (function(){
 'use strict';
 var ROLES={fa:'Flight attendant',gate:'Gate & ticket agent',ramp:'Ramp agent',res:'Reservations & customer care'};
+var APP_URL='https://susantemplin.github.io/cleared-for-takeoff/';
 
-/* Main questions: the same 20 for every role, answerable from ANY background (retail, food service, healthcare, school, volunteering, family). */
+/* Main questions: the same 30 for every role, answerable from ANY background (retail, food service, healthcare, school, volunteering, family). */
 var SHARED=[
  ['Behavioral','Tell me about a time you turned around an upset customer.','Calm, empathy, and a fix. Show you listened before you acted, and finish with how the person left feeling.'],
  ['Behavioral','Describe a time you went above and beyond for someone.','A specific moment with a clear result. Small, genuine gestures count as much as big ones.'],
@@ -220,18 +383,30 @@ var SHARED=[
  ['Behavioral','Tell me about a time you followed a rule even though it was unpopular.','Integrity and consistency. Airlines need people who apply the rules fairly, because many of them are about safety.'],
  ['Behavioral','Describe a time you noticed a safety or policy issue. What did you do?','Courage to speak up. They want to hear that you raised it, even when it was easier to stay quiet.'],
  ['Behavioral','Tell me about a mistake you made and how you fixed it.','Owning it right away, fixing it, and what you learned. Hiding mistakes is a red flag.'],
- ['Behavioral','Tell me about a time you had to explain something to someone who didn\u2019t understand.','Clear, patient communication. Show how you changed your explanation until it clicked.'],
+ ['Behavioral','Tell me about a time you had to explain something to someone who didn’t understand.','Clear, patient communication. Show how you changed your explanation until it clicked.'],
  ['Behavioral','Describe a time you had to give someone difficult feedback.','Honest but respectful. Show you chose the right moment, stayed kind, and focused on the fix.'],
- ['Behavioral','Tell me about a time you received criticism from a supervisor. How did you handle it?','Coachability. Show you listened, didn\u2019t get defensive, and actually changed something.'],
+ ['Behavioral','Tell me about a time you received criticism from a supervisor. How did you handle it?','Coachability. Show you listened, didn’t get defensive, and actually changed something.'],
  ['Behavioral','Tell me about a time you had to make a decision without your supervisor.','Good judgment and ownership. Show how you weighed the situation, made a safe call within the rules, and kept your supervisor in the loop afterward.'],
  ['Motivation','Why do you want to work for an airline?','Go beyond travel perks. Talk about caring for people, teamwork, and safety. Perks-only answers are a red flag.'],
  ['Motivation','Why this airline specifically?','Do your homework. Mention something real about the airline, like its values, routes, or reputation, and connect it to you.'],
- ['Motivation','How do you feel about irregular schedules, holidays, and early mornings?','Honest availability. Shift work is the job, so show you\u2019ve thought it through and have a plan.'],
- ['Motivation','Tell me about yourself.','A short story about you: what you do now, what you\u2019re good at, and why this job is your next step. About one minute.']
+ ['Motivation','How do you feel about irregular schedules, holidays, and early mornings?','Honest availability. Shift work is the job, so show you’ve thought it through and have a plan.'],
+ ['Motivation','Tell me about yourself.','A short story about you: what you do now, what you’re good at, and why this job is your next step. About one minute.'],
+ /* Added Oct 2026. Keep new questions at the END so the story-type numbers below stay correct. */
+ ['Behavioral','Tell me about a time you had to convince someone to see things your way.','Calm, respectful persuasion. Show you listened first, explained your reason clearly, and kept the relationship good, whatever the answer was.'],
+ ['Behavioral','Tell me about a time you worked with someone whose background or personality was very different from yours.','Respect and flexibility. Crews and passengers come from everywhere, so show you adjusted how you worked and found common ground.'],
+ ['Behavioral','Tell me about a time you had to learn something new quickly.','Airline training is fast and intense. Show how you learned it (asking questions, practicing, taking notes) and how fast you got good at it.'],
+ ['Behavioral','Tell me about a time you stayed calm and professional even though you were tired or having a rough day.','Consistency. Passengers never know you’re tired, so show what you did to keep your energy and kindness up.'],
+ ['Behavioral','Tell me about a time you took initiative or did something outside your job description.','Ownership. Show you saw what needed doing and did it without being asked, while staying within the rules.'],
+ ['Behavioral','Tell me about a time you helped settle a conflict between two other people.','Staying neutral, listening to both sides, and finding a fair fix. Show you calmed things down instead of picking a side.'],
+ ['Behavioral','Tell me about a time you noticed someone needed help before they asked.','Hospitality. Airlines love people who pay attention and step in early, like spotting a nervous traveler or a parent juggling bags.'],
+ ['Behavioral','Tell me about a time you had to solve a problem without everything you needed.','Resourcefulness. Short-staffed, out of supplies, or the system is down: show how you made it work and kept people taken care of.'],
+ ['Motivation','Where do you see yourself in five years?','Show you plan to stay and grow with them, like becoming a lead, a trainer, or a supervisor. Avoid answers that sound like this job is just a stepping stone.'],
+ ['Motivation','Why should we hire you?','Your best two or three strengths, each backed by a quick real example, tied to what this job needs. Confident, not cocky.']
 ];
 var CORE={fa:SHARED,gate:SHARED,ramp:SHARED,res:SHARED};
 
-/* Optional extra practice: airline-specific scenarios. Nobody is expected to know these already. */
+/* Optional extra practice: airline-specific scenarios. Nobody is expected to know these already.
+   The kind stays 'Role knowledge' because the AI server grades by that name; the screen shows "Airline scenario". */
 var KNOW={
  fa:[
   ['Role knowledge','A passenger refuses to put their bag in the overhead bin before takeoff. What do you do?','Safety first, a clear and respectful ask, a solution offered, and knowing when to bring in the lead.'],
@@ -259,13 +434,25 @@ var KNOW={
 var SETS={core:CORE,know:KNOW};
 var SET_NOTES={
   core:'These work for anyone. Answer with a real story from any job, school, volunteering, or family life.',
-  know:'Optional extra practice with airline situations. You’re not expected to know these yet. Saying what you’d do and what you’d ask is a good answer.'
+  know:'Real airline situations. You’re not expected to know these yet. Saying what you’d do and who you’d ask is a good answer.'
 };
+var KIND_LABEL={'Role knowledge':'Airline scenario'};
 var HELP={
   Behavioral:'No airline experience needed. Use a real story from any job, school, volunteering, or family life.',
   Motivation:'Be honest and specific about you. There’s no one right answer.',
   'Role knowledge':'No experience needed. Walk through what you’d do, step by step, and say who you’d ask for help.'
 };
+
+/* The 5 must-have stories, and which of the 20 questions each kind of story can answer (numbers are positions in SHARED). */
+var TYPES=[
+ ['upset','An upset customer',[0,2,7,12,1,23,25]],
+ ['rush','A stressful rush',[7,8,6,5,15,22,23,27]],
+ ['team','A team win',[5,3,4,13,1,20,21,24,25]],
+ ['mistake','A mistake I fixed',[11,14,10,9,22]],
+ ['above','Going above and beyond',[1,0,15,10,6,20,24,26,27]]
+];
+function typeName(id){for(var i=0;i<TYPES.length;i++)if(TYPES[i][0]===id)return TYPES[i][1];return '';}
+function fitsFor(types){var seen={},out=[];(types||[]).forEach(function(t){TYPES.forEach(function(T){if(T[0]===t)T[2].forEach(function(i){if(!seen[i]){seen[i]=1;out.push(i);}});});});return out;}
 
 var TIPS={
  fa:[
@@ -293,20 +480,73 @@ var TIPS={
 };
 var GENERAL=[
  ['You don’t need airline experience','Most interview questions are about how you treat people and handle pressure. Stories from retail, restaurants, healthcare, school, or volunteering all count.'],
- ['Use the STAR shape','Situation, Task, Action, Result. Keep each answer to about one to two minutes, spend most of it on what you did, and always finish with how it turned out.'],
+ ['Use the 3 parts','The problem, what YOU did, and how it ended. Keep each answer to about one to two minutes, spend most of it on what you did, and always finish with how it turned out.'],
  ['Have four or five stories ready','An upset customer, a stressful rush, a team win, a mistake you fixed, and going above and beyond. Most questions fit one of these.'],
  ['Look the part','Airlines care about a polished, professional look. Dress conservatively and neatly, even for video interviews.'],
  ['Smile and be warm','Friendliness is part of the job, so it is part of the interview. Warmth comes through on video too.'],
  ['Ask them a question','Have one or two ready, like what a new hire’s first few months look like.']
 ];
+var CHECKLIST=[
+ 'Get there early. At some face-to-face events, the doors close at start time and late arrivals can’t get in.',
+ 'Bring your ID, and any documents or printouts your invite asks for.',
+ 'Dress the part: polished, conservative, and neat.',
+ 'Practice your 3 to 5 stories out loud the night before.',
+ 'Have one or two questions ready to ask them.',
+ 'For a video interview, test your camera, light, sound, and internet first.',
+ 'Charge your phone and plan your route, parking, or ride.',
+ 'Get a good night’s sleep and eat before you go.'
+];
+var WAIT_TIPS=[
+ 'Tip: Spend most of your answer on what YOU did.',
+ 'Tip: Always finish with how it ended. A thank-you or a number makes it stick.',
+ 'Tip: One to two minutes out loud is the sweet spot.',
+ 'Tip: Say "I," not "we." They’re hiring you.',
+ 'Tip: Smile while you talk. Warmth comes through, even on video.',
+ 'Tip: One good story can answer many questions. Just change what you lead with.'
+];
 
 /* ---------- storage (per viewer, on this device) ---------- */
-var KEY='cft_v1',state={role:'fa',set:'core',answered:0,stories:[],seen:{},ai:{day:'',used:0}};
-function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&typeof o==='object'){state.role=ROLES[o.role]?o.role:'fa';state.set=SETS[o.set]?o.set:'core';state.answered=+o.answered||0;state.stories=Array.isArray(o.stories)?o.stories:[];state.seen=o.seen&&typeof o.seen==='object'?o.seen:{};if(o.ai&&typeof o.ai==='object')state.ai={day:String(o.ai.day||''),used:+o.ai.used||0};}}}catch(e){}}
+var KEY='cft_v1',state={role:'fa',set:'core',answered:0,stories:[],seen:{},ai:{day:'',used:0,server:-1},
+  welcomed:false,drafts:{},history:{},days:[],interview:'',checks:{}};
+function obj(o){return o&&typeof o==='object'&&!Array.isArray(o)?o:{};}
+function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&typeof o==='object'){
+  state.role=ROLES[o.role]?o.role:'fa';state.set=SETS[o.set]?o.set:'core';state.answered=+o.answered||0;
+  state.stories=Array.isArray(o.stories)?o.stories.filter(function(s){return s&&typeof s==='object';}):[];
+  state.seen=obj(o.seen);
+  if(o.ai&&typeof o.ai==='object')state.ai={day:String(o.ai.day||''),used:+o.ai.used||0,server:typeof o.ai.server==='number'?o.ai.server:-1};
+  /* People who used the app before this update already know it, so skip the welcome for them. */
+  state.welcomed=o.welcomed===true||state.answered>0||state.stories.length>0;
+  state.drafts=obj(o.drafts);state.history=obj(o.history);
+  state.days=Array.isArray(o.days)?o.days.filter(function(d){return /^\d{4}-\d\d-\d\d$/.test(d);}):[];
+  state.interview=/^\d{4}-\d\d-\d\d$/.test(o.interview||'')?o.interview:'';state.checks=obj(o.checks);
+}}}catch(e){}
+  state.stories.forEach(function(s,i){if(!s.id)s.id='s'+Date.now().toString(36)+i;if(!Array.isArray(s.types))s.types=[];['title','s','t','a','r','polished'].forEach(function(k){if(s[k]!=null)s[k]=String(s[k]);});});
+}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
 function $(id){return document.getElementById(id);}
 function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
-function stats(){$('statAnswered').textContent=state.answered;$('statStories').textContent=state.stories.length;}
+function phxDay(off){return new Date(Date.now()-7*3600000+(off||0)*86400000).toISOString().slice(0,10);}
+function dayNum(s){return Math.round(Date.parse(s+'T00:00:00Z')/86400000);}
+var toastT;
+function toast(msg){var t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){t.hidden=true;},2600);}
+
+/* ---------- header progress ---------- */
+function coreDone(){var n=0;SHARED.forEach(function(q){if(state.seen['core:'+q[1]])n++;});return n;}
+function streak(){
+  var set={};state.days.forEach(function(d){set[d]=1;});
+  var start=set[phxDay()]?0:(set[phxDay(-1)]?-1:null);if(start===null)return 0;
+  var n=0;while(set[phxDay(start-n)])n++;return n;
+}
+function daysToGo(){if(!state.interview)return null;return dayNum(state.interview)-dayNum(phxDay());}
+function stats(){
+  var h='<span class="pp" title="Interview questions answered"><b>'+coreDone()+'</b>/'+SHARED.length+' done</span>';
+  var s=streak();if(s>=1)h+='<span class="pp" title="Practice streak">🔥 <b>'+s+'</b> day'+(s===1?'':'s')+'</span>';
+  h+='<span class="pp"><b>'+state.stories.length+'</b> '+(state.stories.length===1?'story':'stories')+'</span>';
+  var d=daysToGo();if(d!==null&&d>=0)h+='<span class="pp" title="Days until your interview">✈️ '+(d===0?'<b>Today!</b>':'<b>'+d+'</b> day'+(d===1?'':'s')+' to go')+'</span>';
+  $('prog').innerHTML=h;
+  $('jobChip').innerHTML=esc(ROLES[state.role])+' &#9662;';
+}
+function markDay(){var d=phxDay();if(state.days.indexOf(d)<0){state.days.push(d);if(state.days.length>60)state.days=state.days.slice(-60);}}
 
 /* ---------- AI (through the Cleared for Takeoff server) ---------- */
 var API_URL='https://cleared-for-takeoff-api.susantemplin.workers.dev';
@@ -324,16 +564,16 @@ function isDailyLimit(e){return !!e&&e.code!=='rate_limited'&&(e.status===429||/
 var DAILY_MSG='You’ve used today’s AI reviews. They reset at midnight Arizona time.';
 /* The server's count can lag about a minute, so this device also counts its own reviews and shows whichever number is lower. */
 var DAILY_REVIEWS=15;
-function phxDay(){return new Date(Date.now()-7*3600000).toISOString().slice(0,10);}
-function countReview(){var d=phxDay();if(state.ai.day!==d)state.ai={day:d,used:0};state.ai.used++;save();}
-function remainingNote(d){
-  if(!d||typeof d.remaining!=='number'||d.remaining<0)return '';
-  var left=d.remaining;if(state.ai.day===phxDay())left=Math.min(left,Math.max(0,DAILY_REVIEWS-state.ai.used));
-  return '<p class="small" style="margin-top:12px">'+left+' AI review'+(left===1?'':'s')+' left today.</p>';
+function countReview(){var d=phxDay();if(state.ai.day!==d)state.ai={day:d,used:0,server:-1};state.ai.used++;save();}
+function reviewsLeft(){
+  if(state.ai.day!==phxDay())return DAILY_REVIEWS;
+  var left=Math.max(0,DAILY_REVIEWS-state.ai.used);if(state.ai.server>=0)left=Math.min(left,state.ai.server);return left;
 }
+function noteServer(d){if(d&&typeof d.remaining==='number'&&d.remaining>=0){state.ai.server=d.remaining;save();}}
+function showLeft(){var n=reviewsLeft();$('leftNote').textContent=n===0?'No AI reviews left today. They reset at midnight Arizona time.':n+' AI review'+(n===1?'':'s')+' left today';}
 
-/* ---------- question stats: counts only (shown / skipped), no answers ---------- */
-var tried=false;
+/* ---------- question stats: counts only (shown / skipped), no answers. Each question counts once per visit. ---------- */
+var tried=false,shownThisVisit={};
 function track(ev,q){
   try{fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},keepalive:true,
     body:JSON.stringify({type:'event',event:ev,kind:q[0],question:q[1],set:state.set})}).catch(function(){});}catch(e){}
@@ -344,22 +584,118 @@ var order=[],pos=0;
 function list(){return SETS[state.set][state.role];}
 function shuffle(n){var a=[];for(var i=0;i<n;i++)a.push(i);for(i=n-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function curQ(){return list()[order[pos]];}
+function qKey(q){return state.set+':'+q[1];}
 function showQ(){
-  var q=curQ();$('qKind').textContent=q[0];$('qText').textContent=q[1];$('qTip').textContent=q[2];
+  var q=curQ();$('qKind').textContent=KIND_LABEL[q[0]]||q[0];$('qText').textContent=q[1];$('qTip').textContent=q[2];
   $('qHelp').textContent=HELP[q[0]]||HELP.Behavioral;
-  $('qCount').textContent='Question '+(pos+1)+' of '+order.length;
-  $('answer').value='';$('feedback').hidden=true;$('fbError').hidden=true;$('thinking').hidden=true;
+  $('qCount').innerHTML='Question '+(pos+1)+' of '+order.length+' &#9662;';
+  $('answer').value=state.drafts[qKey(q)]||'';
+  $('draftNote').textContent=$('answer').value?'Your draft is saved.':'';
+  $('feedback').hidden=true;$('fbError').hidden=true;$('thinking').hidden=true;
   var d=document.querySelector('.hint');if(d)d.open=false;
-  tried=false;track('shown',q);
+  $('btnUseStory').hidden=q[0]!=='Behavioral';
+  timerReset();stopMic(true);
+  tried=false;var k=qKey(q);if(!shownThisVisit[k]){shownThisVisit[k]=1;track('shown',q);}
 }
 function showSet(){
   ['core','know'].forEach(function(s){var b=document.querySelector('[data-set="'+s+'"]');b.setAttribute('aria-pressed',s===state.set?'true':'false');});
   $('setNote').textContent=SET_NOTES[state.set];
 }
 function newRound(){order=shuffle(list().length);pos=0;showSet();showQ();}
-$('btnNext').addEventListener('click',function(){if(!tried)track('skipped',curQ());var last=order[pos];pos=(pos+1)%order.length;if(pos===0){order=shuffle(list().length);if(order.length>1&&order[0]===last){order.push(order.shift());}}showQ();});
+function jumpTo(idx){var rest=shuffle(list().length).filter(function(i){return i!==idx;});order=[idx].concat(rest);pos=0;showQ();}
+$('btnNext').addEventListener('click',function(){if(!tried)track('skipped',curQ());var last=order[pos];pos=(pos+1)%order.length;if(pos===0){order=shuffle(list().length);if(order.length>1&&order[0]===last){order.push(order.shift());}}showQ();window.scrollTo({top:0,behavior:'smooth'});});
 document.querySelectorAll('.sets button').forEach(function(b){
   b.addEventListener('click',function(){var s=b.getAttribute('data-set');if(s===state.set)return;state.set=s;save();newRound();});
+});
+
+/* drafts: saved as you type, so Next question or switching tabs never loses an answer */
+var draftT;
+function saveDraft(){var q=curQ(),k=qKey(q),v=$('answer').value;
+  if(v.trim())state.drafts[k]=v.slice(0,6000);else delete state.drafts[k];
+  var ks=Object.keys(state.drafts);if(ks.length>60)delete state.drafts[ks[0]];
+  save();$('draftNote').textContent=v.trim()?'Draft saved.':'';}
+$('answer').addEventListener('input',function(){clearTimeout(draftT);draftT=setTimeout(saveDraft,400);});
+
+/* hide the bottom bar while typing so it doesn't sit on top of the keyboard */
+document.addEventListener('focusin',function(e){if(e.target.matches('textarea,input[type=text],input:not([type])'))document.body.classList.add('typing');});
+document.addEventListener('focusout',function(){setTimeout(function(){var a=document.activeElement;if(!a||!a.matches||!a.matches('textarea,input[type=text],input:not([type])'))document.body.classList.remove('typing');},60);});
+
+/* ---------- tap to talk (the phone's built-in speech-to-text) ---------- */
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition,rec=null,listening=false,baseText='';
+if(SR){$('btnMic').hidden=false;$('ansHint').textContent='Tap to talk, or type. Answer the way you’d say it out loud. Typos are fine.';}
+else $('ansHint').textContent='Answer the way you’d say it out loud. Typos are fine. On a phone, tap the mic on your keyboard to talk it instead.';
+function micUI(){var b=$('btnMic');b.classList.toggle('on',listening);b.querySelector('span').textContent=listening?'Stop':'Tap to talk';b.setAttribute('aria-pressed',listening?'true':'false');}
+function stopMic(abort){if(rec){if(abort){rec.onresult=null;rec.onend=null;rec.onerror=null;try{rec.abort();}catch(e){}}else if(listening){try{rec.stop();}catch(e){}}}listening=false;micUI();}
+$('btnMic').addEventListener('click',function(){
+  if(listening){stopMic();saveDraft();return;}
+  try{
+    rec=new SR();rec.lang='en-US';rec.continuous=true;rec.interimResults=true;
+    var cur=$('answer').value;baseText=cur&&!/\s$/.test(cur)?cur+' ':cur;
+    rec.onresult=function(ev){var fin='',tmp='';for(var i=0;i<ev.results.length;i++){var t=ev.results[i][0].transcript;if(ev.results[i].isFinal)fin+=t;else tmp+=t;}
+      $('answer').value=(baseText+fin+tmp).replace(/\s+/g,' ').replace(/^\s/,'');};
+    rec.onerror=function(ev){listening=false;micUI();
+      if(ev.error==='not-allowed'||ev.error==='service-not-allowed')toast('Allow the microphone to use Tap to talk, or use the mic on your keyboard.');
+      else if(ev.error!=='no-speech'&&ev.error!=='aborted')toast('Voice typing stopped. Tap to talk to keep going.');};
+    rec.onend=function(){if(listening){listening=false;micUI();}saveDraft();};
+    rec.start();listening=true;micUI();if(!timerOn)timerToggle();
+  }catch(e){listening=false;micUI();toast('Voice typing isn’t available here. Use the mic on your keyboard instead.');}
+});
+
+/* ---------- practice timer ---------- */
+var timerOn=false,timerStart=0,timerAcc=0,timerI=null;
+function fmt(s){return Math.floor(s/60)+':'+('0'+Math.floor(s%60)).slice(-2);}
+function timerPaint(){var s=timerAcc+(timerOn?(Date.now()-timerStart)/1000:0),b=$('btnTimer');
+  $('timerTxt').textContent=(s<0.5&&!timerOn)?'Timer':fmt(s)+(s>=120?' Wrap it up':'');
+  b.classList.toggle('warm',s>=60&&s<120);b.classList.toggle('hot',s>=120);}
+function timerToggle(){if(timerOn){timerAcc+=(Date.now()-timerStart)/1000;timerOn=false;clearInterval(timerI);}else{timerStart=Date.now();timerOn=true;timerI=setInterval(timerPaint,250);}timerPaint();}
+function timerReset(){timerOn=false;clearInterval(timerI);timerAcc=0;timerPaint();}
+$('btnTimer').addEventListener('click',function(){
+  var s=timerAcc+(timerOn?(Date.now()-timerStart)/1000:0);
+  if(!timerOn&&s>0.5){timerReset();return;} /* third tap starts over */
+  timerToggle();
+  if(timerOn&&s<0.5)toast('Timer started. Aim for 1 to 2 minutes.');
+});
+
+/* ---------- sheets (pop-up panels) ---------- */
+var lastFocus=null;
+function openSheet(title,html,onClick){
+  lastFocus=document.activeElement;$('sheetTitle').textContent=title;$('sheetBody').innerHTML=html;$('veil').hidden=false;
+  $('sheetBody').onclick=onClick||null;setTimeout(function(){$('sheetX').focus();},30);
+}
+function closeSheet(){$('veil').hidden=true;$('sheetBody').onclick=null;if(lastFocus&&lastFocus.focus)lastFocus.focus();}
+$('sheetX').addEventListener('click',closeSheet);
+$('veil').addEventListener('click',function(e){if(e.target===this)closeSheet();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('veil').hidden)closeSheet();});
+
+/* pick any question */
+$('qCount').addEventListener('click',function(){
+  var L=list(),cur=order[pos];
+  var h='<p class="small" style="margin:0 0 6px">✓ means you’ve answered it.</p>'+L.map(function(q,i){
+    var k=state.set+':'+q[1],hist=state.history[k],best=0;
+    if(hist&&hist.length)hist.forEach(function(x){best=Math.max(best,x.score||0);});
+    return '<button class="opt'+(i===cur?' sel':'')+'" data-q="'+i+'">'+(state.seen[k]?'<span class="done">✓ </span>':'')+esc(q[1])
+      +(best?'<small>Best score: '+best+' of 5</small>':'')+'</button>';}).join('');
+  openSheet(state.set==='core'?'Interview questions':'Airline scenarios',h,function(e){var b=e.target.closest('[data-q]');if(!b)return;closeSheet();jumpTo(+b.getAttribute('data-q'));});
+});
+
+/* job picker */
+function roleOpts(){return Object.keys(ROLES).map(function(k){return '<button class="opt'+(k===state.role?' sel':'')+'" data-role="'+k+'">'+esc(ROLES[k])+'</button>';}).join('');}
+function setRole(k){if(!ROLES[k])return;var changed=k!==state.role;state.role=k;save();stats();renderTips();if(changed)newRound();}
+$('jobChip').addEventListener('click',function(){
+  openSheet('The job you’re going for','<p class="small" style="margin:0">Your interview questions stay the same. This changes the airline scenarios and tips.</p>'+roleOpts(),function(e){var b=e.target.closest('[data-role]');if(!b)return;closeSheet();setRole(b.getAttribute('data-role'));toast('Set to '+ROLES[state.role]);});
+});
+
+/* use one of my stories */
+function storyText(s){if(s.polished)return s.polished;return [s.s,s.t,s.a,s.r].map(function(x){return (x||'').trim();}).filter(Boolean).join(' ');}
+function insertStory(s){var a=$('answer'),t=storyText(s);a.value=a.value.trim()?a.value.replace(/\s+$/,'')+'\n\n'+t:t;saveDraft();
+  toast('Your story is in. Now bend it: lead with the part that fits this question.');}
+$('btnUseStory').addEventListener('click',function(){
+  if(!state.stories.length){openSheet('Use my story','<p style="margin:0">You don’t have any saved stories yet. Build one in My stories, then come back and bend it to fit any question.</p><button class="btn btn-go" style="width:100%;margin-top:14px" id="goStories">Go to My stories</button>',function(e){if(e.target.id==='goStories'){closeSheet();showTab('stories');}});return;}
+  var q=curQ(),qi=SHARED.indexOf(q);
+  var h='<p class="small" style="margin:0 0 4px">Pick a story to drop into your answer. Stories marked ★ fit this question.</p>'+state.stories.map(function(s,i){
+    var fit=qi>=0&&fitsFor(s.types).indexOf(qi)>=0;
+    return '<button class="opt" data-st="'+i+'">'+(fit?'★ ':'')+esc(s.title||'Untitled story')+'<small>'+esc(storyText(s).slice(0,90))+'…</small></button>';}).join('');
+  openSheet('Use my story',h,function(e){var b=e.target.closest('[data-st]');if(!b)return;closeSheet();insertStory(state.stories[+b.getAttribute('data-st')]);});
 });
 
 /* Backup structure check, used only when live AI can't be reached. Deliberately generous: it should never call a real story "missing". */
@@ -375,7 +711,7 @@ function starGuess(t){
 function lights(n){var h='<div class="lights" aria-hidden="true">';for(var i=1;i<=5;i++)h+='<i class="'+(i<=n?'on':'')+'"></i>';return h+'</div>';}
 function starRow(st,soft){
   var names=[['situation','Situation'],['task','Task'],['action','Action'],['result','Result']];
-  return '<div class="star">'+names.map(function(n){var ok=st[n[0]];return '<div class="'+(ok?'ok':(soft?'soft':'miss'))+'">'+n[1]+'<br>'+(ok?'\u2713':(soft?'add more':'missing'))+'</div>';}).join('')+'</div>';
+  return '<div class="star">'+names.map(function(n){var ok=st[n[0]];return '<div class="'+(ok?'ok':(soft?'soft':'miss'))+'">'+n[1]+'<br>'+(ok?'✓':(soft?'add more':'missing'))+'</div>';}).join('')+'</div>';
 }
 /* Story questions use STAR. Motivation and role knowledge questions get their own checklist. */
 var CHECKS={
@@ -383,38 +719,49 @@ var CHECKS={
   know:[['steps','Clear steps'],['safety','Safety first'],['passenger','Calm and kind'],['help','Asks for help']]
 };
 function checkRow(mode,c){
-  return '<div class="star">'+CHECKS[mode].map(function(n){var ok=c[n[0]];return '<div class="'+(ok?'ok':'soft')+'">'+n[1]+'<br>'+(ok?'\u2713':'add more')+'</div>';}).join('')+'</div>';
+  return '<div class="star">'+CHECKS[mode].map(function(n){var ok=c[n[0]];return '<div class="'+(ok?'ok':'soft')+'">'+n[1]+'<br>'+(ok?'✓':'add more')+'</div>';}).join('')+'</div>';
 }
 var STRONGER_NOTE={
   story:'Fill in any [brackets] with what really happened, then say it in your own words. Interviewers can tell when an answer is memorized.',
-  motivation:'We added ideas you didn\u2019t mention. Only use what fits you, fill in any [brackets] with your own details, and say it in your own words.',
-  know:'We added ideas you didn\u2019t mention. Only use what fits you, and say it in your own words.'
+  motivation:'We added ideas you didn’t mention. Only use what fits you, fill in any [brackets] with your own details, and say it in your own words.',
+  know:'We added ideas you didn’t mention. Only use what fits you, and say it in your own words.'
 };
 function modeFor(kind){return kind==='Motivation'?'motivation':(kind==='Role knowledge'?'know':'story');}
-function renderAI(d,raw){
+var lastStronger='';
+function pastHTML(hist){
+  if(!hist||!hist.length)return '';
+  return '<details class="past"><summary>Your past tries ('+hist.length+')</summary><ul>'+hist.slice().reverse().map(function(x){
+    return '<li><b>'+esc(x.d)+'</b> · '+x.score+' of 5<br><span class="small">'+esc((x.text||'').slice(0,160))+((x.text||'').length>160?'…':'')+'</span></li>';}).join('')+'</ul></details>';
+}
+function renderAI(d,prev,hist){
   var n=Math.max(1,Math.min(5,Math.round(+d.score||0)));
-  var h='<div class="score">'+lights(n)+'<b>'+n+' of 5</b></div>';
-  h+='<p style="margin-top:8px">'+esc(d.summary||'')+'</p>';
+  var h='';
+  if(n===5)h+='<div class="perfect"><strong>Cleared for takeoff! ✈️</strong>That’s a 5 of 5 answer. Say it out loud a few more times so it feels natural.</div>';
+  h+='<div class="score">'+lights(n)+'<b>'+n+' of 5</b>';
+  if(prev)h+='<span class="trend'+(n>prev?' up':'')+'">Last try: '+prev+(n>prev?' → now '+n+' ⬆':' of 5')+'</span>';
+  h+='</div><p style="margin-top:8px">'+esc(d.summary||'')+'</p>';
   if(CHECKS[d.mode])h+=checkRow(d.mode,d.checks||{});else if(d.mode!=='none')h+=starRow(d.star||{});
   if(d.worked&&d.worked.length)h+='<h3>What worked</h3><ul>'+d.worked.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
   if(d.improve&&d.improve.length)h+='<h3>Make it stronger</h3><ul>'+d.improve.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
   if(d.stronger)h+='<h3>A stronger version</h3><div class="better">'+esc(d.stronger)+'</div><p class="small">'+(STRONGER_NOTE[d.mode]||STRONGER_NOTE.story)+'</p>';
-  return h+remainingNote(raw);
+  h+='<div class="fbacts"><button class="btn btn-go" data-act="retry">Edit and try again</button>'+(d.stronger?'<button class="btn btn-plain" data-act="savestronger">Save to My stories</button>':'')+'</div>';
+  h+=pastHTML(hist);
+  return h;
 }
 function renderLocal(t,why,mode){
   var st=starGuess(t),words=t.trim().split(/\s+/).filter(Boolean).length,notes=[];
-  var intro=why==='daily'?DAILY_MSG+' Here\u2019s a quick check in the meantime.':'Live AI feedback couldn\u2019t be reached just now, so this is a quick check. Try again in a minute for a full review.';
+  var intro=why==='daily'?DAILY_MSG+' Here’s a quick check in the meantime.':'Live AI feedback couldn’t be reached just now, so this is a quick check. Try again in a minute for a full review.';
   if(mode==='motivation'||mode==='know'){
     if(words<40)notes.push('This is short. Aim for about one minute out loud.');
     if(words>300)notes.push('This is long. Keep it to about one minute out loud.');
     if(mode==='motivation'){
       notes.push('Give one real reason that goes beyond travel perks.');
-      notes.push('Connect it to you: something you\u2019re good at or a moment that shows it.');
+      notes.push('Connect it to you: something you’re good at or a moment that shows it.');
       notes.push('End with why this job is your next step.');
     }else{
       notes.push('Say your steps in order: first, then, next.');
       notes.push('Mention safety wherever it matters.');
-      notes.push('Say how you\u2019d talk to the person, and when you\u2019d bring in a lead or supervisor.');
+      notes.push('Say how you’d talk to the person, and when you’d bring in a lead or supervisor.');
     }
     return '<div class="score"><b>Quick check</b></div><p class="small" style="margin-top:4px">'+intro+'</p><h3>Make it stronger</h3><ul>'+notes.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
   }
@@ -422,8 +769,8 @@ function renderLocal(t,why,mode){
   if(words>380)notes.push('This is long. Trim the setup and spend your time on what you did.');
   if(!st.situation)notes.push('Set the scene in a sentence: where you were and what was happening.');
   if(!st.task)notes.push('Say what you needed to do or what was at stake.');
-  if(!st.action)notes.push('Say exactly what you did, using "I." Interviewers want your actions, not the team\u2019s.');
-  if(!st.result)notes.push('Finish with how it turned out. A number or a customer\u2019s reaction makes it stick.');
+  if(!st.action)notes.push('Say exactly what you did, using "I." Interviewers want your actions, not the team’s.');
+  if(!st.result)notes.push('Finish with how it turned out. A number or a customer’s reaction makes it stick.');
   if(!notes.length)notes.push('Nice structure. Read it out loud once and time yourself.');
   return '<div class="score"><b>Quick check</b></div><p class="small" style="margin-top:4px">'+intro+'</p>'+starRow(st,true)+'<h3>Make it stronger</h3><ul>'+notes.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
 }
@@ -440,54 +787,122 @@ function cleanFeedback(d,mode){
   if(!(out.score>=1&&out.score<=5)||!out.summary)return null;
   return out;
 }
-var busy=false;
+var busy=false,tipI=null;
+function startWait(){var i=Math.floor(Math.random()*WAIT_TIPS.length);$('waitTip').textContent=WAIT_TIPS[i];
+  clearInterval(tipI);tipI=setInterval(function(){i=(i+1)%WAIT_TIPS.length;$('waitTip').textContent=WAIT_TIPS[i];},4500);$('thinking').hidden=false;}
+function endWait(){clearInterval(tipI);$('thinking').hidden=true;}
 $('btnFeedback').addEventListener('click',async function(){
   if(busy)return;
-  var t=$('answer').value.trim(),q=curQ(),btn=this,why='',mode=modeFor(q[0]);
+  if(listening){stopMic();await new Promise(function(r){setTimeout(r,700);});}
+  if(timerOn)timerToggle();
+  var t=$('answer').value.trim(),q=curQ(),btn=this,why='',mode=modeFor(q[0]),k=qKey(q);
   $('fbError').hidden=true;
-  if(t.split(/\s+/).filter(Boolean).length<8){$('fbError').textContent='Write at least a few sentences first, the way you\u2019d answer out loud.';$('fbError').hidden=false;return;}
-  busy=true;btn.disabled=true;tried=true;
-  var html=null;
-  $('thinking').hidden=false;
-  try{var res=await callAI({type:'feedback',role:state.role,kind:q[0],set:state.set,question:q[1],tip:q[2],answer:t.slice(0,4000)});countReview();var d=cleanFeedback(res.feedback,mode);if(d)html=renderAI(d,res);}
+  if(t.split(/\s+/).filter(Boolean).length<8){$('fbError').textContent='Write at least a few sentences first, the way you’d answer out loud.';$('fbError').hidden=false;return;}
+  busy=true;btn.disabled=true;tried=true;$('feedback').hidden=true;
+  var html=null,perfect=false;
+  startWait();
+  $('thinking').scrollIntoView({behavior:'smooth',block:'center'});
+  try{var res=await callAI({type:'feedback',role:state.role,kind:q[0],set:state.set,question:q[1],tip:q[2],answer:t.slice(0,4000)});countReview();noteServer(res);
+    var d=cleanFeedback(res.feedback,mode);
+    if(d){
+      var hist=state.history[k]||[],prev=hist.length?hist[hist.length-1].score:0,sc=Math.max(1,Math.min(5,Math.round(d.score)));
+      hist.push({d:phxDay(),score:sc,text:t.slice(0,600)});if(hist.length>5)hist=hist.slice(-5);state.history[k]=hist;
+      lastStronger=d.stronger?{q:q[1],text:d.stronger}:null;
+      html=renderAI(d,prev,hist.slice(0,-1));perfect=sc===5;markDay();
+    }}
   catch(e){
     if(e&&e.code==='rate_limited'){$('fbError').textContent='The AI coach is busy right now. Wait a minute and try again.';$('fbError').hidden=false;}
-    else if(isDailyLimit(e))why='daily';
+    else if(isDailyLimit(e)){why='daily';state.ai={day:phxDay(),used:DAILY_REVIEWS,server:0};}
   }
-  $('thinking').hidden=true;
+  endWait();
   if(!html&&$('fbError').hidden)html=renderLocal(t,why,mode);
   if(html){$('feedback').innerHTML=html;$('feedback').hidden=false;
-    var k=state.set+':'+q[1];if(!state.seen[k]){state.seen[k]=1;state.answered++;save();stats();}}
+    if(!state.seen[k]){state.seen[k]=1;state.answered++;}
+    save();stats();
+    $('feedback').scrollIntoView({behavior:'smooth',block:'start'});
+    if(perfect)confetti();}
+  showLeft();
   busy=false;btn.disabled=false;
 });
+$('feedback').addEventListener('click',function(e){
+  var b=e.target.closest('[data-act]');if(!b)return;var act=b.getAttribute('data-act');
+  if(act==='retry'){var a=$('answer');a.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){a.focus();},350);}
+  if(act==='savestronger'&&lastStronger){
+    state.stories.unshift({id:'s'+Date.now().toString(36),title:'Stronger answer: '+lastStronger.q.slice(0,48)+(lastStronger.q.length>48?'…':''),s:'',t:'',a:'',r:'',polished:lastStronger.text,types:[]});
+    save();stats();renderStories();renderMusts();b.disabled=true;b.textContent='Saved ✓';toast('Saved to My stories. Fill in the [brackets] with what really happened.');}
+});
+
+/* ---------- confetti for a 5 of 5 ---------- */
+function confetti(){
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var c=$('confetti'),x=c.getContext('2d');if(!x)return;c.hidden=false;
+  var w=c.width=innerWidth,h=c.height=innerHeight,cols=['#F2B90C','#3E7CB1','#2F8F5B','#E0705F','#FFFFFF'],P=[];
+  for(var i=0;i<140;i++)P.push({x:w/2+(Math.random()-.5)*w*.3,y:h*.35,vx:(Math.random()-.5)*12,vy:-Math.random()*13-4,s:Math.random()*7+5,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:cols[i%cols.length]});
+  var t0=performance.now();
+  (function f(t){var el=t-t0;x.clearRect(0,0,w,h);P.forEach(function(p){p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.globalAlpha=Math.max(0,1-el/2600);x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});
+    if(el<2600)requestAnimationFrame(f);else{x.clearRect(0,0,w,h);c.hidden=true;}})(t0);
+}
 
 /* ---------- stories ---------- */
+var editing=null,formTypes=[];
+function renderTypePick(){$('typePick').innerHTML=TYPES.map(function(T){return '<button type="button" data-type="'+T[0]+'" aria-pressed="'+(formTypes.indexOf(T[0])>=0)+'">'+esc(T[1])+'</button>';}).join('');}
+$('typePick').addEventListener('click',function(e){var b=e.target.closest('[data-type]');if(!b)return;var t=b.getAttribute('data-type'),i=formTypes.indexOf(t);if(i>=0)formTypes.splice(i,1);else formTypes.push(t);renderTypePick();});
+function renderMusts(){
+  var have={};state.stories.forEach(function(s){(s.types||[]).forEach(function(t){have[t]=1;});});
+  var n=TYPES.filter(function(T){return have[T[0]];}).length;
+  $('mustNote').textContent='The 5 must-have stories: you have '+n+' of 5.';
+  $('musts').innerHTML=TYPES.map(function(T){return '<span class="must'+(have[T[0]]?' have':'')+'">'+(have[T[0]]?'✓ ':'○ ')+esc(T[1])+'</span>';}).join('');
+}
+function formShown(show){$('storyForm').hidden=!show;$('btnNewStory').hidden=show||!state.stories.length;}
+function clearForm(){['sTitle','sS','sT','sA','sR'].forEach(function(id){$(id).value='';});formTypes=[];editing=null;renderTypePick();
+  $('formTitle').textContent='Add a story';$('btnSaveStory').textContent='Save story';$('btnCancelStory').hidden=!state.stories.length;$('storyMsg').hidden=true;}
+function part(label,v){return v&&v.trim()?'<p><b>'+label+':</b> '+esc(v)+'</p>':'';}
 function renderStories(){
   var box=$('storyList');
-  if(!state.stories.length){box.innerHTML='<div class="empty">No stories yet. Fill in the four parts above and save your first one.</div>';return;}
+  if(!state.stories.length){box.innerHTML='<div class="empty">No stories yet. Fill in the parts above and save your first one.</div>';formShown(true);return;}
   box.innerHTML=state.stories.map(function(s,i){
-    return '<div class="story"><h3>'+esc(s.title)+'</h3>'
-      +'<p><b>Situation:</b> '+esc(s.s)+'</p><p><b>Task:</b> '+esc(s.t)+'</p><p><b>Action:</b> '+esc(s.a)+'</p><p><b>Result:</b> '+esc(s.r)+'</p>'
+    var fits=fitsFor(s.types),hasParts=s.s&&s.a&&s.r;
+    var fitH=fits.length?'<details class="fits"><summary>Questions this story answers ('+fits.length+')</summary><ul>'+fits.map(function(qi){return '<li><span>'+esc(SHARED[qi][1])+'</span><button data-practice="'+qi+'" data-sid="'+i+'">Practice</button></li>';}).join('')+'</ul></details>'
+      :'<p class="small">Tap Edit and pick what kind of story this is to see which questions it answers.</p>';
+    return '<div class="story"><h3>'+esc(s.title||'Untitled story')+'</h3>'
+      +(s.types&&s.types.length?'<div class="tags">'+s.types.map(function(t){return '<span>'+esc(typeName(t))+'</span>';}).join('')+'</div>':'')
+      +part('The problem',s.s)+part('What was at stake',s.t)+part('What I did',s.a)+part('How it ended',s.r)
       +(s.polished?'<div class="polished">'+esc(s.polished)+'</div>':'')
-      +'<div><button class="linkbtn" data-polish="'+i+'">'+(s.polished?'Polish again':'Turn into a spoken answer')+'</button><button class="linkbtn danger" data-del="'+i+'">Delete</button></div>'
+      +fitH
+      +'<div>'+(hasParts?'<button class="linkbtn" data-polish="'+i+'">'+(s.polished?'Polish again':'Turn into a spoken answer')+'</button>':'')
+      +'<button class="linkbtn" data-edit="'+i+'">Edit</button><button class="linkbtn danger" data-del="'+i+'">Delete</button></div>'
       +'<div class="small" data-status="'+i+'"></div></div>';
   }).join('');
+  if(editing===null)formShown(false);
 }
+$('btnNewStory').addEventListener('click',function(){clearForm();formShown(true);$('sTitle').focus();});
+$('btnCancelStory').addEventListener('click',function(){clearForm();formShown(false);});
 $('btnSaveStory').addEventListener('click',function(){
-  var s={title:$('sTitle').value.trim(),s:$('sS').value.trim(),t:$('sT').value.trim(),a:$('sA').value.trim(),r:$('sR').value.trim()};
-  var m=$('storyMsg');
-  if(!s.title||!s.s||!s.a||!s.r){m.textContent='Add a name, a situation, what you did, and how it turned out. Task is optional.';m.hidden=false;return;}
-  m.hidden=true;state.stories.unshift(s);save();stats();renderStories();
-  ['sTitle','sS','sT','sA','sR'].forEach(function(id){$(id).value='';});
+  var s={title:$('sTitle').value.trim(),s:$('sS').value.trim(),t:$('sT').value.trim(),a:$('sA').value.trim(),r:$('sR').value.trim(),types:formTypes.slice()};
+  var m=$('storyMsg'),old=editing!==null?state.stories[editing]:null,polished=old&&old.polished;
+  if(!s.title||(!(s.s&&s.a&&s.r)&&!polished)){m.textContent='Add a name, the problem, what you did, and how it ended. "What was at stake" is optional.';m.hidden=false;return;}
+  m.hidden=true;
+  if(old){s.id=old.id;if(old.polished)s.polished=old.polished;state.stories[editing]=s;toast('Story updated.');}
+  else{s.id='s'+Date.now().toString(36);state.stories.unshift(s);toast('Story saved.');}
+  editing=null;save();stats();clearForm();renderStories();renderMusts();formShown(false);
+  window.scrollTo({top:$('storyList').getBoundingClientRect().top+scrollY-90,behavior:'smooth'});
 });
 $('storyList').addEventListener('click',async function(e){
   var b=e.target.closest('button');if(!b)return;
-  if(b.hasAttribute('data-del')){var i=+b.getAttribute('data-del');if(confirmDelete(b)){state.stories.splice(i,1);save();stats();renderStories();}return;}
+  if(b.hasAttribute('data-practice')){var s=state.stories[+b.getAttribute('data-sid')],qi=+b.getAttribute('data-practice');
+    state.set='core';save();showSet();showTab('practice');jumpTo(qi);
+    if(!$('answer').value.trim())insertStory(s);else toast('Your draft for this question is still here. Tap "Use my story" to add your story.');
+    return;}
+  if(b.hasAttribute('data-edit')){var j=+b.getAttribute('data-edit'),st=state.stories[j];editing=j;
+    $('sTitle').value=st.title||'';$('sS').value=st.s||'';$('sT').value=st.t||'';$('sA').value=st.a||'';$('sR').value=st.r||'';formTypes=(st.types||[]).slice();renderTypePick();
+    $('formTitle').textContent='Edit story';$('btnSaveStory').textContent='Update story';$('btnCancelStory').hidden=false;formShown(true);
+    $('storyForm').scrollIntoView({behavior:'smooth',block:'start'});return;}
+  if(b.hasAttribute('data-del')){var i=+b.getAttribute('data-del');if(confirmDelete(b)){state.stories.splice(i,1);if(editing!==null){clearForm();}save();stats();renderStories();renderMusts();}return;}
   if(b.hasAttribute('data-polish')){
-    var j=+b.getAttribute('data-polish'),s=state.stories[j],st=document.querySelector('[data-status="'+j+'"]');
-    b.disabled=true;st.textContent='Writing your answer… this can take up to a minute.';
-    try{var r=await callAI({type:'polish',role:state.role,s:s.s,t:s.t||'',a:s.a,r:s.r});countReview();var txt=(r&&r.text||'').trim();if(txt){s.polished=txt;save();renderStories();return;}st.textContent='No answer came back. Try again.';}
-    catch(err){st.textContent=err&&err.code==='rate_limited'?'The AI coach is busy right now. Wait a minute and try again.':(isDailyLimit(err)?DAILY_MSG:(err&&err.code==='network'?'Couldn\u2019t connect. Check your internet and try again.':'That didn\u2019t work. Try again.'));}
+    var k=+b.getAttribute('data-polish'),sp=state.stories[k],stt=document.querySelector('[data-status="'+k+'"]');
+    b.disabled=true;stt.textContent='Writing your answer… this can take up to a minute.';
+    try{var r=await callAI({type:'polish',role:state.role,s:sp.s,t:sp.t||'',a:sp.a,r:sp.r});countReview();noteServer(r);showLeft();var txt=(r&&r.text||'').trim();if(txt){sp.polished=txt;save();renderStories();return;}stt.textContent='No answer came back. Try again.';}
+    catch(err){stt.textContent=err&&err.code==='rate_limited'?'The AI coach is busy right now. Wait a minute and try again.':(isDailyLimit(err)?DAILY_MSG:(err&&err.code==='network'?'Couldn’t connect. Check your internet and try again.':'That didn’t work. Try again.'));}
     b.disabled=false;
   }
 });
@@ -498,21 +913,89 @@ function confirmDelete(b){
   return false;
 }
 
-/* ---------- tips ---------- */
-function tipHTML(l){return l.map(function(t){return '<div class="tip"><h3>'+esc(t[0])+'</h3><p>'+esc(t[1])+'</p></div>';}).join('');}
-function renderTips(){$('tipsRole').innerHTML='<h2 class="section-h" style="margin-top:4px">'+esc(ROLES[state.role])+'</h2>'+tipHTML(TIPS[state.role]);$('tipsGeneral').innerHTML=tipHTML(GENERAL);}
-
-/* ---------- tabs & role ---------- */
-document.querySelectorAll('nav.tabs button').forEach(function(b){
-  b.addEventListener('click',function(){
-    var tab=b.getAttribute('data-tab');
-    document.querySelectorAll('nav.tabs button').forEach(function(x){x.setAttribute('aria-selected',x===b?'true':'false');});
-    ['practice','stories','tips'].forEach(function(p){$('p-'+p).hidden=p!==tab;});
-  });
+/* backup */
+function storiesPlain(){return state.stories.map(function(s){
+  return (s.title||'Untitled story')+'\n'+(s.s?'The problem: '+s.s+'\n':'')+(s.t?'What was at stake: '+s.t+'\n':'')+(s.a?'What I did: '+s.a+'\n':'')+(s.r?'How it ended: '+s.r+'\n':'')+(s.polished?'Spoken answer: '+s.polished+'\n':'');}).join('\n');}
+$('btnEmail').addEventListener('click',function(){
+  if(!state.stories.length){toast('Save a story first.');return;}
+  var body=storiesPlain();if(body.length>1800)body=body.slice(0,1800)+'\n\n(Too long for one email. Use "Save a backup file" to keep everything.)';
+  location.href='mailto:?subject='+encodeURIComponent('My interview stories (Cleared for Takeoff)')+'&body='+encodeURIComponent(body);
 });
-$('roleSel').addEventListener('change',function(){state.role=this.value;save();newRound();renderTips();});
+$('btnDownload').addEventListener('click',function(){
+  if(!state.stories.length){toast('Save a story first.');return;}
+  var blob=new Blob([JSON.stringify({app:'cleared-for-takeoff',version:1,saved:phxDay(),stories:state.stories},null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my-interview-stories-'+phxDay()+'.json';document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);toast('Backup saved to your downloads.');
+});
+$('btnRestore').addEventListener('click',function(){$('restoreFile').click();});
+$('restoreFile').addEventListener('change',function(){
+  var f=this.files&&this.files[0];this.value='';if(!f)return;
+  var rd=new FileReader();rd.onload=function(){
+    try{var o=JSON.parse(rd.result),list=Array.isArray(o)?o:o&&o.stories;if(!Array.isArray(list))throw 0;
+      var ids={},added=0;state.stories.forEach(function(s){ids[s.id]=1;});
+      list.forEach(function(s){if(!s||typeof s!=='object'||!s.title)return;var c={id:String(s.id||('s'+Date.now().toString(36)+added)),title:String(s.title),s:String(s.s||''),t:String(s.t||''),a:String(s.a||''),r:String(s.r||''),types:Array.isArray(s.types)?s.types.filter(typeName):[]};if(s.polished)c.polished=String(s.polished);if(ids[c.id])return;ids[c.id]=1;state.stories.push(c);added++;});
+      save();stats();renderStories();renderMusts();toast(added?'Restored '+added+' '+(added===1?'story':'stories')+'.':'Those stories are already here.');}
+    catch(e){toast('That file isn’t a Cleared for Takeoff backup.');}
+  };rd.readAsText(f);
+});
 
-load();$('roleSel').value=state.role;stats();newRound();renderStories();renderTips();
+/* ---------- tips: countdown, checklist, role tips ---------- */
+function tipHTML(l){return l.map(function(t){return '<div class="tip"><h3>'+esc(t[0])+'</h3><p>'+esc(t[1])+'</p></div>';}).join('');}
+function renderTips(){$('tipsRole').innerHTML='<h2 class="section-h">'+esc(ROLES[state.role])+'</h2>'+tipHTML(TIPS[state.role]);$('tipsGeneral').innerHTML=tipHTML(GENERAL);}
+function renderCount(){
+  var d=daysToGo(),o=$('countOut');$('ivDate').value=state.interview||'';$('ivClear').hidden=!state.interview;
+  if(d===null)o.innerHTML='<p class="small" style="margin:0">Add your date to get a countdown at the top of the app.</p>';
+  else if(d<0)o.innerHTML='<p style="margin:0">That date has passed. How did it go? Add your next one.</p>';
+  else if(d===0)o.innerHTML='<div class="count">Today’s the day! ✈️</div><p class="small" style="margin:0">Breathe, smile, and tell your stories. You’ve got this.</p>';
+  else o.innerHTML='<div class="count">'+d+' day'+(d===1?'':'s')+' to go</div><p class="small" style="margin:0">'+(d<=3?'Final stretch: practice your stories out loud and go through the checklist.':'Practice a few questions a day and build your 5 must-have stories.')+'</p>';
+}
+$('ivDate').addEventListener('change',function(){state.interview=/^\d{4}-\d\d-\d\d$/.test(this.value)?this.value:'';save();renderCount();stats();});
+$('ivClear').addEventListener('click',function(){state.interview='';save();renderCount();stats();});
+function renderChecklist(){$('checklist').innerHTML=CHECKLIST.map(function(c,i){return '<li><label><input type="checkbox" data-ck="'+i+'"'+(state.checks[i]?' checked':'')+'><span>'+esc(c)+'</span></label></li>';}).join('');}
+$('checklist').addEventListener('change',function(e){var i=e.target.getAttribute('data-ck');if(i===null)return;if(e.target.checked)state.checks[i]=1;else delete state.checks[i];save();});
+$('checkReset').addEventListener('click',function(){state.checks={};save();renderChecklist();});
+$('btnShare').addEventListener('click',async function(){
+  var data={title:'Cleared for Takeoff',text:'Practice airline interview questions and get AI feedback. Built by a gate agent:',url:APP_URL};
+  if(navigator.share){try{await navigator.share(data);}catch(e){}return;}
+  try{await navigator.clipboard.writeText(data.text+' '+APP_URL);toast('Link copied. Paste it in a text to a friend.');}
+  catch(e){toast('Share this link: '+APP_URL);}
+});
+
+/* ---------- tabs ---------- */
+function showTab(tab){
+  document.querySelectorAll('nav.tabs button').forEach(function(x){x.setAttribute('aria-selected',x.getAttribute('data-tab')===tab?'true':'false');});
+  ['practice','stories','tips'].forEach(function(p){$('p-'+p).hidden=p!==tab;});
+  if(tab!=='practice'){stopMic(true);saveDraft();}
+  if(tab==='tips')renderCount();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('nav.tabs button').forEach(function(b){b.addEventListener('click',function(){showTab(b.getAttribute('data-tab'));});});
+
+/* ---------- welcome walkthrough (first open only) ---------- */
+var wStep=0;
+function dots(n){var h='<div class="dots" aria-hidden="true">';for(var i=0;i<3;i++)h+='<i class="'+(i===n?'on':'')+'"></i>';return h+'</div>';}
+function renderWelcome(){
+  var w=$('wbox');
+  if(wStep===0)w.innerHTML='<img src="icon-192.png" alt="">'+'<h2>Welcome aboard! ✈️</h2><p>Practice real airline interview questions and get instant feedback. Built by a gate agent who works the airport every day.</p>'+dots(0)
+    +'<p style="color:#fff;font-weight:600;margin-top:4px">Which job are you going for?</p>'+roleOpts()+'<button class="wskip" data-w="skip">Skip the tour</button>';
+  else if(wStep===1)w.innerHTML='<h2>Practice out loud</h2><p>Each question comes with what interviewers are listening for. Tap to talk (or type), then get feedback and a stronger version of your answer.</p>'
+    +'<div class="parts"><div><b>Tap to talk:</b> say it like you would in the room</div><div><b>Timer:</b> aim for 1 to 2 minutes</div><div><b>Feedback:</b> a score, what worked, and how to make it stronger</div></div>'+dots(1)
+    +'<button class="wgo" data-w="next">Next</button><button class="wskip" data-w="skip">Skip</button>';
+  else w.innerHTML='<h2>One good story, many questions</h2><p>Build a few stories in My stories. Every great story has 3 parts:</p>'
+    +'<div class="parts"><div><b>1. The problem</b></div><div><b>2. What I did</b></div><div><b>3. How it ended</b></div></div><p>Then bend each one to fit whatever they ask.</p>'+dots(2)
+    +'<button class="wgo" data-w="done">Let’s go</button>';
+  var first=w.querySelector('.opt,.wgo');if(first)first.focus();
+}
+$('wbox').addEventListener('click',function(e){
+  var r=e.target.closest('[data-role]');if(r){setRole(r.getAttribute('data-role'));wStep=1;renderWelcome();return;}
+  var b=e.target.closest('[data-w]');if(!b)return;var a=b.getAttribute('data-w');
+  if(a==='next'){wStep=2;renderWelcome();return;}
+  state.welcomed=true;save();$('welcome').hidden=true;
+});
+
+/* ---------- start ---------- */
+load();stats();newRound();clearForm();renderStories();renderMusts();renderTips();renderChecklist();renderCount();showLeft();
+if(!state.welcomed){$('welcome').hidden=false;renderWelcome();}
 })();
 </script>
 <script>
