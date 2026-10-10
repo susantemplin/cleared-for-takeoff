@@ -119,7 +119,7 @@ textarea{width:100%;min-height:150px;margin-top:8px;padding:12px 14px;border:1.5
 .feedback ul{margin:4px 0;padding-left:20px}
 .feedback p{margin:4px 0}
 .better{background:var(--tint);border-radius:8px;padding:12px 14px;white-space:pre-wrap}
-.better .fill{background:var(--card);color:var(--sky);font-weight:600;border:1px dashed var(--sky);border-radius:5px;padding:0 4px}
+.polished .fill,.better .fill{background:var(--card);color:var(--sky);font-weight:600;border:1px dashed var(--sky);border-radius:5px;padding:0 4px}
 .whyb{margin:8px 0 0;padding-left:20px;font-size:15px;color:var(--ink2)}
 .fbacts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .fbacts .btn{flex:1;min-width:150px;font-size:16px;padding:11px 14px}
@@ -291,6 +291,7 @@ body.typing .wrap{padding-bottom:24px}
       <div class="field"><label for="sT">What was at stake <span class="small" style="display:inline">(optional)</span></label><span class="small">Why did it matter? What did you need to do?</span><textarea id="sT"></textarea></div>
       <div class="field"><label for="sA">What I did</label><span class="small">Step by step. Say "I," not "we."</span><textarea id="sA"></textarea></div>
       <div class="field"><label for="sR">How it ended</label><span class="small">The happy ending: a thank-you, minutes saved, people helped.</span><textarea id="sR"></textarea></div>
+      <div class="field" id="sPWrap" hidden><label for="sP">Your spoken answer</label><span class="small">Replace each [bracket] with what really happened, in your own words.</span><textarea id="sP" style="min-height:180px"></textarea></div>
       <div class="row"><button class="btn btn-go" id="btnSaveStory">Save story</button><button class="btn btn-plain" id="btnCancelStory" hidden>Cancel</button></div>
       <div id="storyMsg" class="err" hidden></div>
     </div>
@@ -916,7 +917,7 @@ function renderMusts(){
   $('musts').innerHTML=TYPES.map(function(T){return '<span class="must'+(have[T[0]]?' have':'')+'">'+(have[T[0]]?'✓ ':'○ ')+esc(T[1])+'</span>';}).join('');
 }
 function formShown(show){$('storyForm').hidden=!show;$('btnNewStory').hidden=show||!state.stories.length;}
-function clearForm(){['sTitle','sS','sT','sA','sR'].forEach(function(id){$(id).value='';});formTypes=[];editing=null;renderTypePick();
+function clearForm(){['sTitle','sS','sT','sA','sR','sP'].forEach(function(id){$(id).value='';});$('sPWrap').hidden=true;formTypes=[];editing=null;renderTypePick();
   $('formTitle').textContent='Add a story';$('btnSaveStory').textContent='Save story';$('btnCancelStory').hidden=!state.stories.length;$('storyMsg').hidden=true;}
 function part(label,v){return v&&v.trim()?'<p><b>'+label+':</b> '+esc(v)+'</p>':'';}
 function renderStories(){
@@ -929,7 +930,7 @@ function renderStories(){
     return '<div class="story"><h3>'+esc(s.title||'Untitled story')+'</h3>'
       +(s.types&&s.types.length?'<div class="tags">'+s.types.map(function(t){return '<span>'+esc(typeName(t))+'</span>';}).join('')+'</div>':'')
       +part('The problem',s.s)+part('What was at stake',s.t)+part('What I did',s.a)+part('How it ended',s.r)
-      +(s.polished?'<div class="polished">'+esc(s.polished)+'</div>':'')
+      +(s.polished?'<div class="polished">'+fillHTML(s.polished)+'</div>'+(hasFill(s.polished)?'<p class="small">Tap Edit to fill in the [highlighted] spots.</p>':''):'')
       +fitH
       +'<div>'+(hasParts?'<button class="linkbtn" data-polish="'+i+'">'+(s.polished?'Polish again':'Turn into a spoken answer')+'</button>':'')
       +'<button class="linkbtn" data-edit="'+i+'">Edit</button><button class="linkbtn danger" data-del="'+i+'">Delete</button></div>'
@@ -941,10 +942,10 @@ $('btnNewStory').addEventListener('click',function(){clearForm();formShown(true)
 $('btnCancelStory').addEventListener('click',function(){clearForm();formShown(false);});
 $('btnSaveStory').addEventListener('click',function(){
   var s={title:$('sTitle').value.trim(),s:$('sS').value.trim(),t:$('sT').value.trim(),a:$('sA').value.trim(),r:$('sR').value.trim(),types:formTypes.slice()};
-  var m=$('storyMsg'),ei=editing!==null?storyIdx(editing):-1,old=ei>=0?state.stories[ei]:null,polished=old&&old.polished;
+  var m=$('storyMsg'),ei=editing!==null?storyIdx(editing):-1,old=ei>=0?state.stories[ei]:null,pv=$('sPWrap').hidden?'':$('sP').value.trim(),polished=pv||(old&&old.polished);
   if(!s.title||(!(s.s&&s.a&&s.r)&&!polished)){m.textContent='Add a name, the problem, what you did, and how it ended. "What was at stake" is optional.';m.hidden=false;return;}
   m.hidden=true;
-  if(old){s.id=old.id;if(old.polished)s.polished=old.polished;state.stories[ei]=s;toast('Story updated.');}
+  if(old){s.id=old.id;if(polished)s.polished=polished;state.stories[ei]=s;toast(hasFill(polished)?'Story updated. A few [highlighted] spots are still left to fill in.':'Story updated.');}
   else{s.id='s'+Date.now().toString(36);state.stories.unshift(s);toast('Story saved.');}
   editing=null;save();stats();clearForm();renderStories();renderMusts();formShown(false);
   $('storyList').scrollIntoView({behavior:'smooth',block:'start'});
@@ -956,7 +957,7 @@ $('storyList').addEventListener('click',async function(e){
     if(!$('answer').value.trim())insertStory(s);else toast('Your draft for this question is still here. Tap "Use my story" to add your story.');
     return;}
   if(b.hasAttribute('data-edit')){var j=+b.getAttribute('data-edit'),st=state.stories[j];if(!st)return;editing=st.id;
-    $('sTitle').value=st.title||'';$('sS').value=st.s||'';$('sT').value=st.t||'';$('sA').value=st.a||'';$('sR').value=st.r||'';formTypes=(st.types||[]).slice();renderTypePick();
+    $('sTitle').value=st.title||'';$('sS').value=st.s||'';$('sT').value=st.t||'';$('sA').value=st.a||'';$('sR').value=st.r||'';$('sP').value=st.polished||'';$('sPWrap').hidden=!st.polished;formTypes=(st.types||[]).slice();renderTypePick();
     $('formTitle').textContent='Edit story';$('btnSaveStory').textContent='Update story';$('btnCancelStory').hidden=false;formShown(true);
     $('storyForm').scrollIntoView({behavior:'smooth',block:'start'});return;}
   if(b.hasAttribute('data-del')){var i=+b.getAttribute('data-del');if(confirmDelete(b)){var gone=state.stories.splice(i,1)[0];if(gone&&editing===gone.id){clearForm();formShown(false);}save();stats();renderStories();renderMusts();}return;}
