@@ -1,0 +1,92 @@
+name: Build Android app
+
+# Builds the Cleared for Takeoff Android app from the website files.
+# Runs by hand (Actions tab > Build Android app > Run workflow) or when the app files change.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'privacy.html'
+      - 'terms.html'
+      - 'app/**'
+      - '.github/workflows/android.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install app tools
+        run: npm install --no-audit --no-fund
+
+      - name: Copy the website into the app
+        run: node scripts/prepare-www.mjs
+
+      - name: Create the Android project
+        run: |
+          npx cap add android
+          npx cap sync android
+          chmod +x android/gradlew
+
+      - name: Make the icons and launch screen
+        run: |
+          python3 -m pip install --quiet pillow || python3 -m pip install --quiet --break-system-packages pillow
+          python3 scripts/make-icons.py
+
+      - name: Apply app settings (icons, permissions, version)
+        run: VERSION_CODE=$((100 + GITHUB_RUN_NUMBER)) python3 scripts/patch-android.py
+
+      - name: Build test app (APK)
+        working-directory: app/android
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Build Google Play bundle (AAB)
+        working-directory: app/android
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          CFT_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          CFT_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          CFT_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "No upload key saved yet, so skipping the Google Play bundle. The test APK is still built."
+            exit 0
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.keystore"
+          CFT_KEYSTORE="$RUNNER_TEMP/upload.keystore" ./gradlew --no-daemon bundleRelease
+          rm -f "$RUNNER_TEMP/upload.keystore"
+
+      - name: Save the builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: takeoff-android-${{ github.run_number }}
+          path: |
+            app/android/app/build/outputs/apk/debug/*.apk
+            app/android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+          retention-days: 30
