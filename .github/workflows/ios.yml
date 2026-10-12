@@ -1,0 +1,98 @@
+name: Build iPhone app
+
+# Builds the Cleared for Takeoff iPhone app on GitHub's Mac computers.
+# Before the Apple keys are saved: it only checks that the app builds (no Apple account needed).
+# After the keys are saved: it signs the app and sends it straight to TestFlight.
+# Runs by hand: Actions tab > Build iPhone app > Run workflow.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    runs-on: macos-26
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: app
+    env:
+      ASC_KEY_P8: ${{ secrets.APPSTORE_KEY_P8 }}
+      ASC_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+      TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Use Xcode 26
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)
+          echo "Using $X"
+          sudo xcode-select -s "$X"
+          xcodebuild -version
+
+      - name: Install app tools
+        run: npm install --no-audit --no-fund
+
+      - name: Copy the website into the app
+        run: node scripts/prepare-www.mjs
+
+      - name: Create the iPhone project
+        run: |
+          npx cap add ios
+          npx cap sync ios
+
+      - name: Make the icons and launch screen
+        run: |
+          python3 -m pip install --quiet pillow || python3 -m pip install --quiet --break-system-packages pillow
+          python3 scripts/make-icons.py
+
+      - name: Apply app settings (icon, permissions, version)
+        run: python3 scripts/patch-ios.py
+
+      - name: Check that the app builds (no Apple account needed)
+        if: env.ASC_KEY_P8 == ''
+        run: |
+          set -o pipefail
+          xcodebuild build -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO | tail -40
+          echo "The iPhone app builds. Save the Apple keys in GitHub to send it to TestFlight."
+
+      - name: Build, sign, and send to TestFlight
+        if: env.ASC_KEY_P8 != ''
+        run: |
+          set -o pipefail
+          KEY="$RUNNER_TEMP/AuthKey_$ASC_KEY_ID.p8"
+          printf '%s\n' "$ASC_KEY_P8" > "$KEY"
+          BUILD=$((100 + GITHUB_RUN_NUMBER))
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>$TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict></plist>
+          EOF
+          xcodebuild archive -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$KEY" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_STYLE=Automatic CURRENT_PROJECT_VERSION="$BUILD" | tail -60
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$KEY" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+          rm -f "$KEY"
+          echo "Sent build $BUILD to TestFlight. It shows up in App Store Connect in about 10 to 30 minutes."
