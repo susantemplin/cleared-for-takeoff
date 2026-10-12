@@ -1,0 +1,28 @@
+{
+  "name": "cleared-for-takeoff-app",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Cleared for Takeoff phone app (Android + iPhone), built from the website files in the folder above.",
+  "scripts": {
+    "www": "node scripts/prepare-www.mjs",
+    "sync": "npm run www && npx cap sync"
+  },
+  "dependencies": {
+    "@capacitor-community/in-app-review": "^8.0.0",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/browser": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/filesystem": "^8.0.0",
+    "@capacitor/haptics": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "@capacitor/keyboard": "^8.0.0",
+    "@capacitor/local-notifications": "^8.0.0",
+    "@capacitor/share": "^8.0.0",
+    "@capacitor/splash-screen": "^8.0.0",
+    "@capgo/capacitor-speech-recognition": "^8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0"
+  }
+}
