@@ -1,0 +1,29 @@
+{
+  "appId": "com.clearedfortakeoff.app",
+  "appName": "Takeoff",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 700,
+      "launchAutoHide": true,
+      "launchFadeOutDuration": 250,
+      "backgroundColor": "#14304F",
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP"
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_plane",
+      "iconColor": "#F2B90C"
+    },
+    "SystemBars": {
+      "style": "DARK",
+      "insetsHandling": "css"
+    },
+    "Keyboard": {
+      "resizeOnFullScreen": true
+    }
+  }
+}
