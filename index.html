@@ -227,6 +227,25 @@ body.typing .wrap{padding-bottom:24px}
 .toast{position:fixed;left:50%;bottom:calc(90px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)));transform:translateX(-50%);z-index:70;background:#14304F;color:#fff;padding:10px 16px;border-radius:999px;font-weight:600;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:90vw;text-align:center}
 #confetti{position:fixed;inset:0;z-index:80;pointer-events:none}
 @media (prefers-reduced-motion:no-preference){.feedback{animation:rise .25s ease-out}@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
+
+/* ---- bigger screens: iPad, folding phones, tablets, computers ---- */
+.qcol,.acol{min-width:0}
+@media (min-width:700px){
+  .wrap,.top-in{max-width:760px}
+  .wrap{padding-left:24px;padding-right:24px}
+  .top-in{padding:0 24px}
+}
+@media (min-width:960px){
+  .wrap,.top-in{max-width:1120px}
+  .wrap{padding-left:32px;padding-right:32px}
+  .top-in{padding:0 32px}
+  #p-practice:not([hidden]){display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:32px;align-items:start}
+  #p-practice .qcol{position:sticky;top:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px)) + 76px)}
+  #p-practice .acol{padding-top:4px}
+  #answer{min-height:260px}
+  #p-stories:not([hidden]),#p-tips:not([hidden]){columns:2;column-gap:28px}
+  #p-stories .card,#p-tips .card{break-inside:avoid;display:inline-block;width:100%}
+}
 </style>
 </head>
 <body>
@@ -243,6 +262,7 @@ body.typing .wrap{padding-bottom:24px}
 <div class="wrap">
   <!-- PRACTICE -->
   <section id="p-practice" role="tabpanel" aria-labelledby="t-practice">
+   <div class="qcol">
     <div class="sets" role="group" aria-label="Question set">
       <button id="setCore" data-set="core" aria-pressed="true">Interview questions</button>
       <button id="setKnow" data-set="know" aria-pressed="false">Airline scenarios</button>
@@ -254,6 +274,8 @@ body.typing .wrap{padding-bottom:24px}
       <p class="qhelp" id="qHelp"></p>
       <details class="hint"><summary>What they're listening for</summary><p id="qTip" style="margin:6px 0 0"></p></details>
     </div>
+   </div>
+   <div class="acol">
     <div class="tools">
       <button class="tool mic" id="btnMic" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span>Tap to talk</span></button>
       <button class="tool timer" id="btnTimer" aria-label="Practice timer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span id="timerTxt">Timer</span></button>
@@ -276,6 +298,7 @@ body.typing .wrap{padding-bottom:24px}
     </div>
     <div id="fbError" class="err" hidden></div>
     <div id="feedback" class="feedback" hidden></div>
+   </div>
   </section>
 
   <!-- STORIES -->
@@ -404,6 +427,10 @@ function plug(name){
 function pcall(p,m,arg){try{if(!p||typeof p[m]!=='function')return Promise.reject(new Error('unavailable'));return Promise.resolve(p[m](arg));}catch(e){return Promise.reject(e);}}
 function quiet(pr){if(pr&&pr.catch)pr.catch(function(){});return pr;}
 var HAP=plug('Haptics');
+/* Follow the phone's text-size setting (Settings > Display > Text size / Larger Text).
+   Capped at 200% so screens stay usable; re-checked each time the app comes back. */
+var TZ=plug('TextZoom');
+function textSize(){if(!TZ)return;quiet(pcall(TZ,'getPreferred').then(function(r){var v=r&&+r.value;if(!v||!isFinite(v))return;v=Math.min(Math.max(v,0.85),2);return pcall(TZ,'set',{value:v});}));}
 function hap(kind){if(!HAP)return;quiet(kind==='success'?pcall(HAP,'notification',{type:'SUCCESS'}):pcall(HAP,'impact',{style:kind==='medium'?'MEDIUM':'LIGHT'}));}
 function speechPlug(){
   if(!NATIVE)return null;
@@ -1269,9 +1296,10 @@ if(NATIVE){
       quiet(pcall(APP,'minimizeApp'));
     });}catch(e){}
     try{APP.addListener('appStateChange',function(st){
-      if(st&&st.isActive){stats();renderCount();remindersRefresh();}
+      if(st&&st.isActive){stats();renderCount();remindersRefresh();textSize();}
       else{stopMic(true);saveDraft();}
     });}catch(e){}
+    textSize();
     quiet(pcall(APP,'getInfo').then(function(i){if(i&&i.version){$('appVer').textContent='App version '+i.version+(i.build?' ('+i.build+')':'');$('appVer').hidden=false;}}));
   }
   /* Status bar icons stay light on the navy header; the bottom bar follows light or dark mode */
