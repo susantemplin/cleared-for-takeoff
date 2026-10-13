@@ -8,13 +8,15 @@ const SITE = path.resolve(APP, '..');
 const WWW = path.join(APP, 'www');
 
 const FILES = ['index.html', 'privacy.html', 'terms.html', 'manifest.webmanifest',
-  'icon-192.png', 'icon-512.png', 'maskable-512.png', 'apple-touch-icon.png', 'favicon-32.png'];
+  'icon-192.png', 'icon-512.png', 'maskable-512.png', 'apple-touch-icon.png', 'favicon-32.png',
+  'lang/es.js'];
 
 fs.rmSync(WWW, { recursive: true, force: true });
 fs.mkdirSync(WWW, { recursive: true });
 for (const f of FILES) {
   const src = path.join(SITE, f);
   if (!fs.existsSync(src)) throw new Error('Missing website file: ' + f);
+  fs.mkdirSync(path.dirname(path.join(WWW, f)), { recursive: true });
   fs.copyFileSync(src, path.join(WWW, f));
 }
 
