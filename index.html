@@ -55,6 +55,18 @@ button{cursor:pointer}
 .brand{display:flex;align-items:center;gap:10px}
 .brand img{width:34px;height:34px;border-radius:9px;flex:none}
 .brand h1{margin:0;font-size:26px;line-height:1;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menubtn{flex:none;width:44px;height:44px;margin:-6px -10px -6px 0;border:0;border-radius:10px;background:transparent;color:#fff;display:grid;place-items:center}
+.menubtn svg{width:26px;height:26px}
+.deck{margin-top:6px}
+.deck .di{display:flex;align-items:center;gap:14px;width:100%;padding:15px 4px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-size:17px;font-weight:600;text-align:left;text-decoration:none}
+.deck .di svg{width:22px;height:22px;flex:none;color:var(--ink2)}
+.deck .di.danger,.deck .di.danger svg{color:var(--red)}
+.deck .dlang{padding:14px 4px;border-bottom:1px solid var(--line)}
+.deck .dlang .langs{margin-top:6px}
+.fbnote{margin:8px 0 14px}
+.deckacts{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.deckacts .btn{flex:1;min-width:140px}
+.btn-red{background:var(--red);color:#fff}
 .jobchip{background:rgba(242,185,12,.16);border:1.5px solid rgba(242,185,12,.7);color:#fff;border-radius:999px;padding:2px 10px;font-size:13.5px;font-weight:600;line-height:1.4;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .prog{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .pp{font-size:13.5px;font-weight:600;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.10);color:#DCE6F0;line-height:1.4}
@@ -273,6 +285,7 @@ body.typing .wrap{padding-bottom:24px}
     <div class="brand">
       <img src="icon-192.png" alt="">
       <h1>Cleared for Takeoff</h1>
+      <button class="menubtn" id="menuBtn" aria-label="Open the Flight Deck menu" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     </div>
     <div class="prog"><button class="jobchip" id="jobChip" aria-label="Change the job you're going for">Flight attendant &#9662;</button><span id="prog" style="display:contents"></span></div>
   </div>
@@ -1411,6 +1424,78 @@ function langButtons(){
 }
 function pickLang(l){if(l&&l!==I18N.lang){saveDraft();save();I18N.set(l);}}
 function renderLangPick(){var el=$('langPick');if(!el)return;var h=langButtons();if(!h){el.parentNode.hidden=true;return;}el.innerHTML=h.replace(/^<div[^>]*>|<\/div>$/g,'');}
+
+/* ---------- Flight Deck (the ☰ menu in the top corner) ----------
+   Holds settings and info. Account and Interview Pass slot in here later. */
+var FB_TO='clearedfortakeoffapp@gmail.com',fbDraft='';
+var ICON={
+ feedback:'<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/>',
+ tips:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
+ share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>',
+ privacy:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+ terms:'<path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/>',
+ reset:'<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/>'
+};
+function deckItem(act,label,icon,cls){return '<button type="button" class="di'+(cls?' '+cls:'')+'" data-act="'+act+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[icon]+'</svg>'+esc(T(label))+'</button>';}
+function deckLink(href,label,icon){return '<a class="di" href="'+href+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[icon]+'</svg>'+esc(T(label))+'</a>';}
+function openDeck(){
+  var lb=langButtons();
+  var h='<div class="deck">'+
+    deckItem('feedback','Send feedback','feedback')+
+    deckItem('tips','Tips','tips')+
+    deckItem('share','Share with a friend','share')+
+    (lb?'<div class="dlang"><span class="small">'+esc(T('Language'))+'</span>'+lb+'</div>':'')+
+    deckLink('privacy.html','Privacy Policy','privacy')+
+    deckLink('terms.html','Terms of Service','terms')+
+    deckItem('reset','Reset my progress','reset','danger')+
+  '</div>';
+  openSheet(T('Flight Deck'),h,deckClick);
+}
+function deckClick(e){
+  var lb=e.target.closest('[data-lang]');if(lb){pickLang(lb.getAttribute('data-lang'));return;}
+  var b=e.target.closest('[data-act]');if(!b)return;var a=b.getAttribute('data-act');
+  if(a==='feedback')openFeedback();
+  else if(a==='tips'){closeSheet();showTab('tips');window.scrollTo(0,0);}
+  else if(a==='share'){closeSheet();$('btnShare').click();}
+  else if(a==='reset')openReset();
+  else if(a==='fbsend')sendFeedback();
+  else if(a==='resetyes')doReset();
+  else if(a==='back')openDeck();
+}
+function openFeedback(){
+  openSheet(T('Send feedback'),
+    '<p class="fbnote">'+esc(T('Questions, ideas, or something not working? Tell us here. It goes straight to the gate agent who built this app.'))+'</p>'+
+    '<textarea id="fbText" maxlength="3000" placeholder="'+esc(T('Type your comment, question, or idea…'))+'"></textarea>'+
+    '<p class="small fbnote" id="fbMsg">'+esc(T('When you tap Send, your email app opens with your message ready. Just tap send there.'))+'</p>'+
+    '<div class="deckacts"><button type="button" class="btn btn-plain" data-act="back">'+esc(T('Back'))+'</button><button type="button" class="btn btn-go" data-act="fbsend">'+esc(T('Send'))+'</button></div>',deckClick);
+  var ta=$('fbText');ta.value=fbDraft;ta.addEventListener('input',function(){fbDraft=ta.value;});
+}
+function feedbackURL(msg,plat,ver,job){
+  var body=msg+'\n\n---\nCleared for Takeoff feedback\nDevice: '+plat+(ver?'\n'+ver:'')+'\nLanguage: '+I18N.lang+'\nJob: '+job;
+  return 'mailto:'+FB_TO+'?subject='+encodeURIComponent('Cleared for Takeoff feedback')+'&body='+encodeURIComponent(body);
+}
+function sendFeedback(){
+  var ta=$('fbText'),msg=(ta.value||'').trim();
+  if(!msg){$('fbMsg').textContent=T('Type a message first, then tap Send.');ta.focus();return;}
+  var plat=NATIVE&&CAP.getPlatform?CAP.getPlatform():'web';
+  var ver=($('appVer')&&!$('appVer').hidden)?$('appVer').textContent:'';
+  var job=($('jobChip').textContent||'').replace(/\s*▾\s*$/,'').trim();
+  location.href=feedbackURL(msg,plat,ver,job);
+  fbDraft='';
+  $('sheetBody').innerHTML='<p class="fbnote">'+esc(T('Thank you! Your email app should be open with your message. Tap send there and it reaches us.'))+'</p><div class="deckacts"><button type="button" class="btn btn-go" data-act="back">'+esc(T('Back to Flight Deck'))+'</button></div>';
+}
+function openReset(){
+  openSheet(T('Reset my progress'),
+    '<p class="fbnote">'+esc(T('This clears your answered count, streak, saved practice answers, and checklist on this phone. Your stories in My stories stay safe.'))+'</p>'+
+    '<div class="deckacts"><button type="button" class="btn btn-plain" data-act="back">'+esc(T('Cancel'))+'</button><button type="button" class="btn btn-red" data-act="resetyes">'+esc(T('Yes, reset'))+'</button></div>',deckClick);
+}
+function doReset(){
+  /* Keeps stories, job, language, reminders, interview date, and today's AI review count (so the daily limit stays fair). */
+  state.answered=0;state.seen={};state.drafts={};state.history={};state.days=[];state.checks={};state.good=0;
+  save();location.reload();
+}
+$('menuBtn').addEventListener('click',openDeck);
+
 $('langPick').addEventListener('click',function(e){var b=e.target.closest('[data-lang]');if(b)pickLang(b.getAttribute('data-lang'));});
 function renderWelcome(){
   var w=$('wbox');

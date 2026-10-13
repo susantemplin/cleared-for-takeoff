@@ -430,7 +430,22 @@ strings: {
 "days": "días",
 "story": "historia",
 "stories": "historias",
-"Today!": "¡Hoy!"
+"Today!": "¡Hoy!",
+/* ---- Flight Deck menu ---- */
+"Flight Deck": "Cabina de mando",
+"Open the Flight Deck menu": "Abrir el menú Cabina de mando",
+"Send feedback": "Enviar comentarios",
+"Reset my progress": "Reiniciar mi progreso",
+"Questions, ideas, or something not working? Tell us here. It goes straight to the gate agent who built this app.": "¿Preguntas, ideas o algo que no funciona? Cuéntanos aquí. Le llega directo a la agente de puerta que creó esta app.",
+"Type your comment, question, or idea…": "Escribe tu comentario, pregunta o idea…",
+"When you tap Send, your email app opens with your message ready. Just tap send there.": "Al tocar Enviar, se abre tu app de correo con tu mensaje listo. Solo toca enviar ahí.",
+"Back": "Atrás",
+"Send": "Enviar",
+"Type a message first, then tap Send.": "Escribe un mensaje primero y luego toca Enviar.",
+"Thank you! Your email app should be open with your message. Tap send there and it reaches us.": "¡Gracias! Tu app de correo debería estar abierta con tu mensaje. Toca enviar ahí y nos llega.",
+"Back to Flight Deck": "Volver a Cabina de mando",
+"This clears your answered count, streak, saved practice answers, and checklist on this phone. Your stories in My stories stay safe.": "Esto borra tu conteo de respuestas, tu racha, tus respuestas de práctica guardadas y tu lista en este teléfono. Tus historias en Mis historias se quedan a salvo.",
+"Yes, reset": "Sí, reiniciar",
 },
 
 /* Text with numbers or names inside. Each line: [pattern of the English, function that builds the translation]. */
