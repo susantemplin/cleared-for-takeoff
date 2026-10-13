@@ -996,7 +996,7 @@ $('btnFeedback').addEventListener('click',async function(){
   $('feedback').innerHTML=html;$('feedback').hidden=false;
   $('feedback').scrollIntoView({behavior:'smooth',block:'start'});
   if(perfect)confetti();
-  if(sc>=4)hap('success');
+  hap(sc>=4?'success':'light'); /* one short tap so you know feedback is ready; happier pattern for 4-5 */
 });
 $('feedback').addEventListener('click',function(e){
   var b=e.target.closest('[data-act]');if(!b)return;var act=b.getAttribute('data-act');
