@@ -18,7 +18,7 @@ for f in os.listdir(splash_dir):
         shutil.copyfile(os.path.join(RES, 'splash-2732x2732.png'), os.path.join(splash_dir, f))
 print('icon + splash copied')
 
-# 2. Info.plist: permission messages, no export-compliance question, portrait only
+# 2. Info.plist: permission messages, no export-compliance question, portrait on iPhone, any orientation on iPad
 with open(PLIST, 'rb') as fh:
     p = plistlib.load(fh)
 p['CFBundleDisplayName'] = 'Takeoff'
@@ -26,17 +26,21 @@ p['NSMicrophoneUsageDescription'] = 'Takeoff uses the microphone when you tap Ta
 p['NSSpeechRecognitionUsageDescription'] = 'Takeoff turns what you say into text so you can get feedback on your spoken interview answers.'
 p['ITSAppUsesNonExemptEncryption'] = False
 p['UISupportedInterfaceOrientations'] = ['UIInterfaceOrientationPortrait']
-p.pop('UISupportedInterfaceOrientations~ipad', None)
+# iPad: every orientation (Apple requires this for iPad multitasking; the layout adapts to any width)
+p['UISupportedInterfaceOrientations~ipad'] = [
+    'UIInterfaceOrientationPortrait', 'UIInterfaceOrientationPortraitUpsideDown',
+    'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight']
+p.pop('UIRequiresFullScreen', None)
 with open(PLIST, 'wb') as fh:
     plistlib.dump(p, fh)
 print('Info.plist updated')
 
-# 3. iPhone only (no iPad screenshots needed) and the version from package.json
+# 3. iPhone + iPad (universal app; App Store needs iPad screenshots too) and the version from package.json
 pkg = json.load(open(os.path.join(APP, 'package.json')))
 s = open(PBX, encoding='utf-8').read()
-s, n1 = re.subn(r'TARGETED_DEVICE_FAMILY = "?[0-9,]+"?;', 'TARGETED_DEVICE_FAMILY = 1;', s)
+s, n1 = re.subn(r'TARGETED_DEVICE_FAMILY = "?[0-9,]+"?;', 'TARGETED_DEVICE_FAMILY = "1,2";', s)
 s, n2 = re.subn(r'MARKETING_VERSION = [^;]+;', 'MARKETING_VERSION = %s;' % pkg['version'], s)
 if not (n1 and n2):
     sys.exit('Could not find TARGETED_DEVICE_FAMILY / MARKETING_VERSION in project.pbxproj')
 open(PBX, 'w', encoding='utf-8').write(s)
-print('project: iPhone only, version %s' % pkg['version'])
+print('project: iPhone + iPad, version %s' % pkg['version'])

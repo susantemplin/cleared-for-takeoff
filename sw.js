@@ -1,10 +1,10 @@
 /* Cleared for Takeoff service worker.
    Bump VERSION whenever you upload new files so phones pick up the update. */
-var VERSION = 'cft-v3';
+var VERSION = 'cft-v4';
 var SHELL = [
   './', './index.html', './privacy.html', './terms.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './maskable-512.png',
-  './apple-touch-icon.png', './favicon-32.png'
+  './apple-touch-icon.png', './favicon-32.png', './lang/es.js'
 ];
 
 self.addEventListener('install', function (e) {

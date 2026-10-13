@@ -10,6 +10,7 @@ on:
       - 'index.html'
       - 'privacy.html'
       - 'terms.html'
+      - 'lang/**'
       - 'app/**'
       - '.github/workflows/android.yml'
 

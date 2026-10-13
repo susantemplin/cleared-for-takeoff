@@ -223,10 +223,35 @@ body.typing .wrap{padding-bottom:24px}
 .parts b{color:var(--yellow)}
 .wgo{width:100%;background:var(--yellow);color:#14304F;border:0;border-radius:12px;padding:14px;font-weight:700;font-size:18px;margin-top:8px}
 .wskip{background:none;border:0;color:#C9D6E4;margin-top:10px;width:100%;padding:8px;font-size:15px}
+.langs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.langs button{flex:1 1 120px;padding:10px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);font-weight:600;font-size:16px}
+.langs button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.wbox .langs{justify-content:flex-end;margin:0 0 8px}
+.wbox .langs button{flex:0 0 auto;padding:6px 14px;font-size:14px;background:transparent;color:#fff;border-color:rgba(255,255,255,.3)}
+.wbox .langs button[aria-pressed="true"]{background:#fff;color:#14304F;border-color:#fff}
 
 .toast{position:fixed;left:50%;bottom:calc(90px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)));transform:translateX(-50%);z-index:70;background:#14304F;color:#fff;padding:10px 16px;border-radius:999px;font-weight:600;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:90vw;text-align:center}
 #confetti{position:fixed;inset:0;z-index:80;pointer-events:none}
 @media (prefers-reduced-motion:no-preference){.feedback{animation:rise .25s ease-out}@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
+
+/* ---- bigger screens: iPad, folding phones, tablets, computers ---- */
+.qcol,.acol{min-width:0}
+@media (min-width:700px){
+  .wrap,.top-in{max-width:760px}
+  .wrap{padding-left:24px;padding-right:24px}
+  .top-in{padding:0 24px}
+}
+@media (min-width:960px){
+  .wrap,.top-in{max-width:1120px}
+  .wrap{padding-left:32px;padding-right:32px}
+  .top-in{padding:0 32px}
+  #p-practice:not([hidden]){display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:32px;align-items:start}
+  #p-practice .qcol{position:sticky;top:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px)) + 76px)}
+  #p-practice .acol{padding-top:4px}
+  #answer{min-height:260px}
+  #p-stories:not([hidden]),#p-tips:not([hidden]){columns:2;column-gap:28px}
+  #p-stories .card,#p-tips .card{break-inside:avoid;display:inline-block;width:100%}
+}
 </style>
 </head>
 <body>
@@ -243,6 +268,7 @@ body.typing .wrap{padding-bottom:24px}
 <div class="wrap">
   <!-- PRACTICE -->
   <section id="p-practice" role="tabpanel" aria-labelledby="t-practice">
+   <div class="qcol">
     <div class="sets" role="group" aria-label="Question set">
       <button id="setCore" data-set="core" aria-pressed="true">Interview questions</button>
       <button id="setKnow" data-set="know" aria-pressed="false">Airline scenarios</button>
@@ -254,6 +280,8 @@ body.typing .wrap{padding-bottom:24px}
       <p class="qhelp" id="qHelp"></p>
       <details class="hint"><summary>What they're listening for</summary><p id="qTip" style="margin:6px 0 0"></p></details>
     </div>
+   </div>
+   <div class="acol">
     <div class="tools">
       <button class="tool mic" id="btnMic" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span>Tap to talk</span></button>
       <button class="tool timer" id="btnTimer" aria-label="Practice timer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span id="timerTxt">Timer</span></button>
@@ -276,6 +304,7 @@ body.typing .wrap{padding-bottom:24px}
     </div>
     <div id="fbError" class="err" hidden></div>
     <div id="feedback" class="feedback" hidden></div>
+   </div>
   </section>
 
   <!-- STORIES -->
@@ -355,6 +384,11 @@ body.typing .wrap{padding-bottom:24px}
     </div>
 
     <div class="card">
+      <h2 style="font-size:24px">Language</h2>
+      <div class="langs" id="langPick" role="group" aria-label="Language" data-noi18n></div>
+    </div>
+
+    <div class="card">
       <h2 style="font-size:24px">About this app</h2>
       <p style="margin:0">Built by a gate agent at Phoenix Sky Harbor. Every question and tip comes from real airport experience, so you can walk into your interview ready.</p>
       <div class="social">
@@ -381,9 +415,69 @@ body.typing .wrap{padding-bottom:24px}
 <div id="toast" class="toast" role="status" hidden></div>
 <canvas id="confetti" hidden></canvas>
 
+<script src="lang/es.js"></script>
+<script>
+/* ---------- languages ----------
+   Every language lives in its own file in the lang folder (lang/es.js, ...), keyed by the English text.
+   The app is written in English; this layer swaps each piece of text on screen for the chosen language
+   as it appears, so the app code and saved progress stay the same in every language.
+   Anything missing from a language file simply shows in English. */
+(function(){
+  var PACKS={es:window.CFT_LANG_ES};
+  var NAMES={en:'English',es:'Español'};
+  var KEY='cft-lang',lang='en';
+  try{lang=localStorage.getItem(KEY)||'';}catch(e){lang='';}
+  if(!lang){var nl=(navigator.languages&&navigator.languages[0])||navigator.language||'en';lang=String(nl).slice(0,2).toLowerCase();}
+  if(!PACKS[lang])lang='en';
+  var pack=PACKS[lang]||null,dict=pack?pack.strings:null,pats=pack?pack.patterns:[];
+  function norm(x){return String(x).replace(/\s+/g,' ').trim();}
+  function look(k){
+    if(!dict||!k)return null;
+    if(Object.prototype.hasOwnProperty.call(dict,k))return dict[k];
+    for(var i=0;i<pats.length;i++){var m=pats[i][0].exec(k);if(m)return pats[i][1].apply(null,m.slice(1).map(function(v){return v==null?'':look(v)||v;}));}
+    return null;
+  }
+  /* t('English text') -> text in the chosen language (or the English if there's no translation) */
+  function t(x){if(!dict||x==null)return x;var k=norm(x),v=look(k);if(v==null)return x;var lead=/^\s*/.exec(x)[0],tail=/\s*$/.exec(x)[0];return lead+v+tail;}
+  var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1,CODE:1,PRE:1};
+  var ATTRS=['placeholder','aria-label','title','alt'];
+  function skip(el){for(;el&&el.nodeType===1;el=el.parentNode){if(SKIP[el.tagName]||el.hasAttribute('data-noi18n'))return true;}return false;}
+  function doText(n){if(skip(n.parentNode))return;var v=t(n.data);if(v!==n.data)n.data=v;}
+  function doAttrs(el){if(skip(el))return;for(var i=0;i<ATTRS.length;i++){var a=el.getAttribute(ATTRS[i]);if(a){var v=t(a);if(v!==a)el.setAttribute(ATTRS[i],v);}}}
+  function walk(root){
+    if(!dict||!root)return;
+    if(root.nodeType===3){doText(root);return;}
+    if(root.nodeType!==1||skip(root))return;
+    doAttrs(root);
+    var w=document.createTreeWalker(root,5,null),n;
+    while((n=w.nextNode())){if(n.nodeType===3)doText(n);else doAttrs(n);}
+  }
+  if(dict){
+    document.documentElement.lang=lang;
+    if(pack.dir==='rtl')document.documentElement.dir='rtl';
+    document.title=t(document.title);
+    var md=document.querySelector('meta[name="description"]');if(md)md.content=t(md.content);
+    walk(document.body);
+    new MutationObserver(function(list){
+      list.forEach(function(m){
+        if(m.type==='childList')m.addedNodes.forEach(walk);
+        else if(m.type==='characterData')doText(m.target);
+        else if(m.type==='attributes')doAttrs(m.target);
+      });
+    }).observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:ATTRS});
+  }
+  window.CFT_I18N={
+    lang:lang,t:t,names:NAMES,available:['en'].concat(Object.keys(PACKS).filter(function(k){return !!PACKS[k];})),
+    speech:(pack&&pack.speech)||'en-US',
+    set:function(l){try{localStorage.setItem(KEY,l);}catch(e){}location.reload();}
+  };
+})();
+</script>
 <script>
 (function(){
 'use strict';
+var I18N=window.CFT_I18N||{lang:'en',t:function(x){return x;},speech:'en-US',available:['en'],names:{en:'English'},set:function(){}};
+var T=I18N.t;
 var ROLES={fa:'Flight attendant',gate:'Gate & ticket agent',ramp:'Ramp agent',res:'Reservations & customer care'};
 var APP_URL='https://susantemplin.github.io/cleared-for-takeoff/';
 
@@ -404,6 +498,10 @@ function plug(name){
 function pcall(p,m,arg){try{if(!p||typeof p[m]!=='function')return Promise.reject(new Error('unavailable'));return Promise.resolve(p[m](arg));}catch(e){return Promise.reject(e);}}
 function quiet(pr){if(pr&&pr.catch)pr.catch(function(){});return pr;}
 var HAP=plug('Haptics');
+/* Follow the phone's text-size setting (Settings > Display > Text size / Larger Text).
+   Capped at 200% so screens stay usable; re-checked each time the app comes back. */
+var TZ=plug('TextZoom');
+function textSize(){if(!TZ)return;quiet(pcall(TZ,'getPreferred').then(function(r){var v=r&&+r.value;if(!v||!isFinite(v))return;v=Math.min(Math.max(v,0.85),2);return pcall(TZ,'set',{value:v});}));}
 function hap(kind){if(!HAP)return;quiet(kind==='success'?pcall(HAP,'notification',{type:'SUCCESS'}):pcall(HAP,'impact',{style:kind==='medium'?'MEDIUM':'LIGHT'}));}
 function speechPlug(){
   if(!NATIVE)return null;
@@ -714,7 +812,7 @@ function nSession(){
   var t=nSeg.trim();if(t)baseText=baseText+t+' ';nSeg='';nHeard=false;nGotStart=false;
   var sid=++nSid;nLive=sid;
   clearTimeout(nDog);nDog=setTimeout(function(){if(nLive===sid&&!nGotStart)nEnded(sid);},4000); /* never stuck on "Stop" */
-  pcall(NSR,'start',{language:'en-US',maxResults:1,partialResults:true,popup:false,addPunctuation:true}).catch(function(){nEnded(sid);});
+  pcall(NSR,'start',{language:I18N.speech,maxResults:1,partialResults:true,popup:false,addPunctuation:true}).catch(function(){nEnded(sid);});
 }
 function nEnded(sid){
   if(!nWant||sid!==nLive)return;nLive=0;clearTimeout(nDog);
@@ -762,7 +860,7 @@ $('btnMic').addEventListener('click',function(){
   if(NSR){nMicClick();return;}
   if(listening){stopMic();saveDraft();return;}
   try{
-    rec=new SR();rec.lang='en-US';rec.continuous=true;rec.interimResults=true;
+    rec=new SR();rec.lang=I18N.speech;rec.continuous=true;rec.interimResults=true;
     var cur=$('answer').value;baseText=cur&&!/\s$/.test(cur)?cur+' ':cur;
     rec.onresult=function(ev){var fin=[],tmp='';
       for(var i=0;i<ev.results.length;i++){var t=String(ev.results[i][0].transcript||'').trim();if(!t)continue;
@@ -971,7 +1069,7 @@ $('btnFeedback').addEventListener('click',async function(){
   if(!offline)startWait();
   $('thinking').scrollIntoView({behavior:'smooth',block:'center'});
   try{if(offline){var oe=new Error('network');oe.code='network';oe.status=0;throw oe;}
-    var res=await callAI({type:'feedback',role:state.role,kind:q[0],set:state.set,question:q[1],tip:q[2],answer:t.slice(0,4000)});countReview();noteServer(res);
+    var res=await callAI({type:'feedback',lang:I18N.lang,role:state.role,kind:q[0],set:state.set,question:q[1],tip:q[2],answer:t.slice(0,4000)});countReview();noteServer(res);
     var d=cleanFeedback(res.feedback,mode);
     if(d){
       var hist=state.history[k]||[],prev=hist.length?hist[hist.length-1].score:0;sc=Math.max(1,Math.min(5,Math.round(d.score)));
@@ -996,14 +1094,14 @@ $('btnFeedback').addEventListener('click',async function(){
   $('feedback').innerHTML=html;$('feedback').hidden=false;
   $('feedback').scrollIntoView({behavior:'smooth',block:'start'});
   if(perfect)confetti();
-  if(sc>=4)hap('success');
+  hap(sc>=4?'success':'light'); /* one short tap so you know feedback is ready; happier pattern for 4-5 */
 });
 $('feedback').addEventListener('click',function(e){
   var b=e.target.closest('[data-act]');if(!b)return;var act=b.getAttribute('data-act');
   if(act==='retry'){var a=$('answer');a.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){a.focus();},350);}
   if(act==='savestronger'&&lastStronger){
     var tps=(lastStronger.set==='core'&&lastStronger.kind==='Behavioral')?typesForQuestion(lastStronger.q):[];
-    state.stories.unshift({id:'s'+Date.now().toString(36),title:'Stronger answer: '+lastStronger.q.slice(0,48)+(lastStronger.q.length>48?'…':''),s:'',t:'',a:'',r:'',polished:lastStronger.text,types:tps});
+    state.stories.unshift({id:'s'+Date.now().toString(36),title:T('Stronger answer:')+' '+lastStronger.q.slice(0,48)+(lastStronger.q.length>48?'…':''),s:'',t:'',a:'',r:'',polished:lastStronger.text,types:tps});
     save();stats();renderStories();renderMusts();b.disabled=true;b.textContent='Saved ✓';
     toast(hasFill(lastStronger.text)?'Saved to My stories. Fill in the [highlighted] spots with what really happened.':'Saved to My stories.');}
 });
@@ -1080,7 +1178,7 @@ $('storyList').addEventListener('click',async function(e){
     var sp=state.stories[+b.getAttribute('data-polish')];if(!sp)return;var sid=sp.id;
     var status=function(msg){var x=storyIdx(sid),el=x>=0&&document.querySelector('[data-status="'+x+'"]');if(el)el.textContent=msg;var bb=x>=0&&document.querySelector('[data-polish="'+x+'"]');if(bb)bb.disabled=!!msg&&/Writing/.test(msg);};
     status('Writing your answer\u2026 this can take up to a minute.');
-    try{var r=await callAI({type:'polish',role:state.role,s:sp.s,t:sp.t||'',a:sp.a,r:sp.r});countReview();noteServer(r);showLeft();var txt=(r&&r.text||'').trim();
+    try{var r=await callAI({type:'polish',lang:I18N.lang,role:state.role,s:sp.s,t:sp.t||'',a:sp.a,r:sp.r});countReview();noteServer(r);showLeft();var txt=(r&&r.text||'').trim();
       var x=storyIdx(sid);
       if(txt&&x>=0){state.stories[x].polished=txt;save();renderStories();return;}
       status(txt?'':'No answer came back. Try again.');}
@@ -1097,13 +1195,13 @@ function confirmDelete(b){
 
 /* backup */
 function storiesPlain(){return state.stories.map(function(s){
-  return (s.title||'Untitled story')+'\n'+(s.s?'The problem: '+s.s+'\n':'')+(s.t?'What was at stake: '+s.t+'\n':'')+(s.a?'What I did: '+s.a+'\n':'')+(s.r?'How it ended: '+s.r+'\n':'')+(s.polished?'Spoken answer: '+s.polished+'\n':'');}).join('\n');}
+  return (s.title||T('Untitled story'))+'\n'+(s.s?T('The problem:')+' '+s.s+'\n':'')+(s.t?T('What was at stake:')+' '+s.t+'\n':'')+(s.a?T('What I did:')+' '+s.a+'\n':'')+(s.r?T('How it ended:')+' '+s.r+'\n':'')+(s.polished?T('Spoken answer:')+' '+s.polished+'\n':'');}).join('\n');}
 $('btnEmail').addEventListener('click',async function(){
   if(!state.stories.length){toast('Save a story first.');return;}
   /* In the app: the phone's share sheet (email, notes, texts), with no length limit */
-  if(NATIVE&&await nativeShare({title:'My interview stories (Cleared for Takeoff)',text:storiesPlain(),dialogTitle:'Send your stories to yourself'}))return;
-  var body=storiesPlain();if(body.length>1800)body=body.slice(0,1800)+'\n\n(Too long for one email. Use "Save a backup file" to keep everything.)';
-  location.href='mailto:?subject='+encodeURIComponent('My interview stories (Cleared for Takeoff)')+'&body='+encodeURIComponent(body);
+  if(NATIVE&&await nativeShare({title:T('My interview stories (Cleared for Takeoff)'),text:storiesPlain(),dialogTitle:T('Send your stories to yourself')}))return;
+  var body=storiesPlain();if(body.length>1800)body=body.slice(0,1800)+'\n\n'+T('(Too long for one email. Use "Save a backup file" to keep everything.)');
+  location.href='mailto:?subject='+encodeURIComponent(T('My interview stories (Cleared for Takeoff)'))+'&body='+encodeURIComponent(body);
 });
 $('btnDownload').addEventListener('click',async function(){
   if(!state.stories.length){toast('Save a story first.');return;}
@@ -1111,13 +1209,13 @@ $('btnDownload').addEventListener('click',async function(){
   /* In the app: write the file, then open the share sheet so they can save it to Drive, Files, or email */
   var FS=plug('Filesystem'),SH=plug('Share');
   if(FS&&SH){try{var w=await pcall(FS,'writeFile',{path:name,data:json,directory:'CACHE',encoding:'utf8'});
-      await pcall(SH,'share',{title:'My interview stories',files:[w.uri],dialogTitle:'Save your backup'});}
+      await pcall(SH,'share',{title:T('My interview stories'),files:[w.uri],dialogTitle:T('Save your backup')});}
     catch(e){if(!/cancel/i.test(String(e&&e.message||e)))toast('Couldn\u2019t make the backup. Try again.');}
     return;}
   /* iPhones can't download files from a home-screen app, so use the share sheet there ("Save to Files") */
   var ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   if(ios&&window.File&&navigator.canShare){try{var file=new File([json],name,{type:'application/json'});
-    if(navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'My interview stories'});return;}}catch(e){if(e&&e.name==='AbortError')return;}}
+    if(navigator.canShare({files:[file]})){await navigator.share({files:[file],title:T('My interview stories')});return;}}catch(e){if(e&&e.name==='AbortError')return;}}
   var blob=new Blob([json],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
   setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);toast('Backup file saved.');
@@ -1150,7 +1248,7 @@ function renderChecklist(){$('checklist').innerHTML=CHECKLIST.map(function(c,i){
 $('checklist').addEventListener('change',function(e){var i=e.target.getAttribute('data-ck');if(i===null)return;if(e.target.checked)state.checks[i]=1;else delete state.checks[i];save();});
 $('checkReset').addEventListener('click',function(){state.checks={};save();renderChecklist();});
 $('btnShare').addEventListener('click',async function(){
-  var data={title:'Cleared for Takeoff',text:'Practice airline interview questions and get AI feedback. Built by a gate agent:',url:APP_URL};
+  var data={title:'Cleared for Takeoff',text:T('Practice airline interview questions and get AI feedback. Built by a gate agent:'),url:APP_URL};
   if(NATIVE&&await nativeShare(data))return;
   if(navigator.share){try{await navigator.share(data);}catch(e){}return;}
   try{await navigator.clipboard.writeText(data.text+' '+APP_URL);toast('Link copied. Paste it in a text to a friend.');}
@@ -1203,10 +1301,10 @@ function remindersRefresh(){
       if(day===today&&state.days.indexOf(today)>=0)continue;  /* already practiced today */
       if(state.interview&&day===state.interview)continue;      /* the interview-day note covers that day */
       var m=remMsg(i,day);
-      list.push({id:REM_BASE+i,title:m[0],body:m[1],schedule:{at:at,allowWhileIdle:true},smallIcon:'ic_stat_plane',iconColor:'#F2B90C',extra:{tab:'practice'}});
+      list.push({id:REM_BASE+i,title:T(m[0]),body:T(m[1]),schedule:{at:at,allowWhileIdle:true},smallIcon:'ic_stat_plane',iconColor:'#F2B90C',extra:{tab:'practice'}});
     }
     if(state.interview){var p=state.interview.split('-'),iv=new Date(+p[0],+p[1]-1,+p[2],7,0,0,0);
-      if(iv>now)list.push({id:IV_ID,title:'Today’s the day! ✈️',body:'Breathe, smile, and tell your stories. Run through your checklist before you go.',schedule:{at:iv,allowWhileIdle:true},smallIcon:'ic_stat_plane',iconColor:'#F2B90C',extra:{tab:'tips'}});}
+      if(iv>now)list.push({id:IV_ID,title:T('Today’s the day! ✈️'),body:T('Breathe, smile, and tell your stories. Run through your checklist before you go.'),schedule:{at:iv,allowWhileIdle:true},smallIcon:'ic_stat_plane',iconColor:'#F2B90C',extra:{tab:'tips'}});}
     if(list.length)try{await pcall(LN,'schedule',{notifications:list});}catch(e){}
   })().then(function(){remBusy=null;if(remAgain){remAgain=false;return remindersRefresh();}});
   return remBusy;
@@ -1269,9 +1367,10 @@ if(NATIVE){
       quiet(pcall(APP,'minimizeApp'));
     });}catch(e){}
     try{APP.addListener('appStateChange',function(st){
-      if(st&&st.isActive){stats();renderCount();remindersRefresh();}
+      if(st&&st.isActive){stats();renderCount();remindersRefresh();textSize();}
       else{stopMic(true);saveDraft();}
     });}catch(e){}
+    textSize();
     quiet(pcall(APP,'getInfo').then(function(i){if(i&&i.version){$('appVer').textContent='App version '+i.version+(i.build?' ('+i.build+')':'');$('appVer').hidden=false;}}));
   }
   /* Status bar icons stay light on the navy header; the bottom bar follows light or dark mode */
@@ -1291,9 +1390,18 @@ if(NATIVE){
 /* ---------- welcome walkthrough (first open only) ---------- */
 var wStep=0;
 function dots(n){var h='<div class="dots" aria-hidden="true">';for(var i=0;i<3;i++)h+='<i class="'+(i===n?'on':'')+'"></i>';return h+'</div>';}
+/* language buttons (welcome screen + Tips). Names always show in their own language. */
+function langButtons(){
+  if(I18N.available.length<2)return '';
+  return '<div class="langs" role="group" aria-label="Language" data-noi18n>'+I18N.available.map(function(l){
+    return '<button type="button" lang="'+l+'" data-lang="'+l+'" aria-pressed="'+(l===I18N.lang)+'">'+esc(I18N.names[l]||l)+'</button>';}).join('')+'</div>';
+}
+function pickLang(l){if(l&&l!==I18N.lang){saveDraft();save();I18N.set(l);}}
+function renderLangPick(){var el=$('langPick');if(!el)return;var h=langButtons();if(!h){el.parentNode.hidden=true;return;}el.innerHTML=h.replace(/^<div[^>]*>|<\/div>$/g,'');}
+$('langPick').addEventListener('click',function(e){var b=e.target.closest('[data-lang]');if(b)pickLang(b.getAttribute('data-lang'));});
 function renderWelcome(){
   var w=$('wbox');
-  if(wStep===0)w.innerHTML='<img src="icon-192.png" alt="">'+'<h2>Welcome aboard! ✈️</h2><p>Practice real airline interview questions and get detailed feedback on every answer. Built by a gate agent who works the airport every day.</p>'+dots(0)
+  if(wStep===0)w.innerHTML=langButtons()+'<img src="icon-192.png" alt="">'+'<h2>Welcome aboard! ✈️</h2><p>Practice real airline interview questions and get detailed feedback on every answer. Built by a gate agent who works the airport every day.</p>'+dots(0)
     +'<p style="color:#fff;font-weight:600;margin-top:4px">Which job are you going for?</p>'+roleOpts()+'<button class="wskip" data-w="skip">Skip the tour</button>';
   else if(wStep===1)w.innerHTML='<h2>Practice out loud</h2><p>Each question comes with what interviewers are listening for. '+(VOICE?'Tap to talk (or type)':'Type your answer, or use the mic on your keyboard')+', then get feedback and a stronger version of your answer.</p>'
     +'<div class="parts"><div><b>'+(VOICE?'Tap to talk:':'Talk it out:')+'</b> say it like you would in the room</div><div><b>Timer:</b> aim for 1 to 2 minutes</div><div><b>Feedback:</b> a score, what worked, and how to make it stronger</div></div>'+dots(1)
@@ -1304,6 +1412,7 @@ function renderWelcome(){
   var first=w.querySelector('.opt,.wgo');if(first)first.focus();
 }
 $('wbox').addEventListener('click',function(e){
+  var lb=e.target.closest('[data-lang]');if(lb){pickLang(lb.getAttribute('data-lang'));return;}
   var r=e.target.closest('[data-role]');if(r){setRole(r.getAttribute('data-role'));wStep=1;renderWelcome();return;}
   var b=e.target.closest('[data-w]');if(!b)return;var a=b.getAttribute('data-w');
   if(a==='next'){wStep=2;renderWelcome();return;}
@@ -1312,7 +1421,7 @@ $('wbox').addEventListener('click',function(e){
 });
 
 /* ---------- start ---------- */
-load();stats();newRound();clearForm();renderStories();renderMusts();renderTips();renderChecklist();renderCount();showLeft();renderRem();remindersRefresh();
+load();stats();newRound();clearForm();renderStories();renderMusts();renderTips();renderChecklist();renderCount();showLeft();renderRem();remindersRefresh();renderLangPick();
 if(!state.welcomed){$('welcome').hidden=false;renderWelcome();}
 kbdCheck();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fixPad);window.addEventListener('load',fixPad);
 })();
