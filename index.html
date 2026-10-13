@@ -456,7 +456,7 @@ body.typing .wrap{padding-bottom:24px}
   var ATTRS=['placeholder','aria-label','title','alt'];
   function skip(el){for(;el&&el.nodeType===1;el=el.parentNode){if(SKIP[el.tagName]||el.hasAttribute('data-noi18n'))return true;}return false;}
   function doText(n){if(skip(n.parentNode))return;var v=t(n.data);if(v!==n.data)n.data=v;}
-  function doAttrs(el){if(skip(el))return;for(var i=0;i<ATTRS.length;i++){var a=el.getAttribute(ATTRS[i]);if(a){var v=t(a);if(v!==a)el.setAttribute(ATTRS[i],v);}}}
+  function doAttrs(el){if(skip((el.tagName==='INPUT'||el.tagName==='TEXTAREA')?el.parentNode:el))return;for(var i=0;i<ATTRS.length;i++){var a=el.getAttribute(ATTRS[i]);if(a){var v=t(a);if(v!==a)el.setAttribute(ATTRS[i],v);}}}
   function walk(root){
     if(!dict||!root)return;
     if(root.nodeType===3){doText(root);return;}
