@@ -44,6 +44,17 @@
   .summary { border-left: 3px solid var(--accent); padding: 0.25rem 0 0.25rem 1rem; margin: 0 0 1.5rem; }
   footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.95rem; }
 </style>
+<!-- Cloudflare Web Analytics: counts visits to the website only (not the phone app) -->
+<script>
+(function () {
+  if (location.hostname !== 'clearedfortakeoffapp.com' && location.hostname !== 'www.clearedfortakeoffapp.com') return;
+  var s = document.createElement('script');
+  s.defer = true;
+  s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+  s.setAttribute('data-cf-beacon', '{"token": "da37bd4b9d25482bb74d3fea310c29ef"}');
+  document.head.appendChild(s);
+})();
+</script>
 </head>
 <body>
 <main>

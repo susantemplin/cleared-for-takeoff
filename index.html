@@ -278,6 +278,17 @@ body.typing .wrap{padding-bottom:24px}
   #p-stories .card,#p-tips .card{break-inside:avoid;display:inline-block;width:100%}
 }
 </style>
+<!-- Cloudflare Web Analytics: counts visits to the website only (not the phone app) -->
+<script>
+(function () {
+  if (location.hostname !== 'clearedfortakeoffapp.com' && location.hostname !== 'www.clearedfortakeoffapp.com') return;
+  var s = document.createElement('script');
+  s.defer = true;
+  s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+  s.setAttribute('data-cf-beacon', '{"token": "da37bd4b9d25482bb74d3fea310c29ef"}');
+  document.head.appendChild(s);
+})();
+</script>
 </head>
 <body>
 <header class="top">
