@@ -18,14 +18,17 @@ for f in os.listdir(splash_dir):
         shutil.copyfile(os.path.join(RES, 'splash-2732x2732.png'), os.path.join(splash_dir, f))
 print('icon + splash copied')
 
-# 2. Info.plist: permission messages, no export-compliance question, portrait on iPhone, any orientation on iPad
+# 2. Info.plist: permission messages, no export-compliance question, orientations
 with open(PLIST, 'rb') as fh:
     p = plistlib.load(fh)
 p['CFBundleDisplayName'] = 'Takeoff'
 p['NSMicrophoneUsageDescription'] = 'Takeoff uses the microphone when you tap Tap to talk, so you can practice your interview answers out loud.'
 p['NSSpeechRecognitionUsageDescription'] = 'Takeoff turns what you say into text so you can get feedback on your spoken interview answers.'
 p['ITSAppUsesNonExemptEncryption'] = False
-p['UISupportedInterfaceOrientations'] = ['UIInterfaceOrientationPortrait']
+# iPhone: upright and sideways. iPhone Duo turns and folds, and Apple says a locked
+# orientation can break apps there; the layout adapts to any width and height.
+p['UISupportedInterfaceOrientations'] = [
+    'UIInterfaceOrientationPortrait', 'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight']
 # iPad: every orientation (Apple requires this for iPad multitasking; the layout adapts to any width)
 p['UISupportedInterfaceOrientations~ipad'] = [
     'UIInterfaceOrientationPortrait', 'UIInterfaceOrientationPortraitUpsideDown',

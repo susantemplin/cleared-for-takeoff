@@ -1,6 +1,6 @@
 /* Cleared for Takeoff service worker.
    Bump VERSION whenever you upload new files so phones pick up the update. */
-var VERSION = 'cft-v5';
+var VERSION = 'cft-v6';
 var SHELL = [
   './', './index.html', './privacy.html', './terms.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './maskable-512.png',

@@ -1,0 +1,37 @@
+name: Make App Store screenshots
+
+# Makes App Store screenshots at Apple's exact sizes, in English and Spanish:
+# iPhone Duo inside (2007x2853) and outside (1398x2034) screens, which earn the
+# "optimized for iPhone Duo" badge, plus iPhone 6.9" and iPad 13".
+# Runs by hand: Actions tab > Make App Store screenshots > Run workflow.
+# When it finishes, download "app-store-screenshots" from the bottom of the run page.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install the screenshot browser
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.49.1
+          npx playwright install --with-deps chromium
+
+      - name: Take the screenshots
+        run: node app/scripts/store-screenshots.cjs store-screenshots
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-store-screenshots
+          path: store-screenshots
+          retention-days: 30

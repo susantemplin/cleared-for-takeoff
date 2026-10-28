@@ -33,12 +33,18 @@ jobs:
         with:
           node-version: 22
 
-      - name: Use Xcode 26
+      # iPhone Duo: only apps built with Xcode 27.1 (iOS 27.1 SDK) or newer fill the big inside screen.
+      # Older builds show in a small window with black borders. So use the newest Xcode on the runner.
+      - name: Use the newest Xcode (27.1 or later for iPhone Duo)
         run: |
-          X=$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)
+          X=$(ls -d /Applications/Xcode_*.app | grep -E 'Xcode_[0-9]+(\.[0-9]+)*\.app$' | sort -V | tail -1)
           echo "Using $X"
           sudo xcode-select -s "$X"
           xcodebuild -version
+          V=$(xcodebuild -version | head -1 | awk '{print $2}')
+          if [ "$(printf '%s\n' 27.1 "$V" | sort -V | head -1)" != "27.1" ]; then
+            echo "::warning title=iPhone Duo::This runner only has Xcode $V. The app will build, but it won't fill the iPhone Duo's inside screen until it's built with Xcode 27.1 or later."
+          fi
 
       - name: Install app tools
         run: npm install --no-audit --no-fund
