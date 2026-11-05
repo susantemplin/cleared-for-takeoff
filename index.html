@@ -43,8 +43,9 @@
   --yellow:#F2B90C;--sky:#3E7CB1;--green:#2F8F5B;--red:#B83A2E;--tint:#EAF1F8;--navbg:#FFFFFF;--amber:#9A6A00;
   --r:12px;--rs:10px;--shadow:0 1px 2px rgba(20,48,79,.06),0 4px 14px rgba(20,48,79,.06);
   /* safe areas on every side: notches, the folding iPhone's side status bar, Android edge-to-edge */
-  --st:var(--safe-area-inset-top,env(safe-area-inset-top,0px));--sb:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px));
-  --sl:var(--safe-area-inset-left,env(safe-area-inset-left,0px));--sr:var(--safe-area-inset-right,env(safe-area-inset-right,0px));
+  /* the biggest of: the app's own inset value (Capacitor SystemBars), the browser's env(), and a fallback the app measures on Android */
+  --st:max(var(--safe-area-inset-top,0px),env(safe-area-inset-top,0px),var(--st-min,0px));--sb:max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px),var(--sb-min,0px));
+  --sl:max(var(--safe-area-inset-left,0px),env(safe-area-inset-left,0px));--sr:max(var(--safe-area-inset-right,0px),env(safe-area-inset-right,0px));
   --ease:cubic-bezier(.2,.8,.2,1);
   box-sizing:border-box;
 }
@@ -79,7 +80,9 @@ button{cursor:pointer}
 .deck .di svg{width:calc(22px*var(--tz,1));height:calc(22px*var(--tz,1));flex:none;color:var(--ink2)}
 .deck .di.danger,.deck .di.danger svg{color:var(--red)}
 .deck .dlang{padding:14px 4px;border-bottom:1px solid var(--line)}
-.deck .dlang .langs{margin-top:6px}
+.deck .dlang .langs{margin-top:8px}
+.deck .dlab{display:flex;align-items:center;gap:10px;font-weight:600;color:var(--ink)}
+.deck .dlab svg{width:calc(22px*var(--tz,1));height:calc(22px*var(--tz,1));flex:none;color:var(--sky)}
 .fbnote{margin:8px 0 14px}
 .deckacts{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
 .deckacts .btn{flex:1;min-width:140px}
@@ -311,7 +314,7 @@ body.typing .wrap{padding-bottom:24px}
 
 /* sheets */
 .veil{position:fixed;inset:0;z-index:50;background:rgba(10,20,32,.55);display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:var(--paper);width:100%;max-width:640px;max-height:86vh;max-height:86dvh;overflow:auto;overscroll-behavior:contain;border-radius:18px 18px 0 0;padding:18px calc(16px + var(--sr)) calc(20px + var(--sb)) calc(16px + var(--sl))}
+.sheet{background:var(--paper);width:100%;max-width:640px;max-height:86vh;max-height:min(86dvh,calc(100dvh - var(--st) - 16px));overflow:auto;overscroll-behavior:contain;border-radius:18px 18px 0 0;padding:18px calc(16px + var(--sr)) calc(20px + var(--sb)) calc(16px + var(--sl))}
 .sheet h2{margin:0 0 4px;font-size:calc(26px*(1 + (var(--tz,1) - 1)*.5))}
 .sheet .x{float:right;border:0;background:var(--tint);border-radius:999px;width:44px;height:44px;margin:-4px -4px 0 8px;font-size:calc(22px*(1 + (var(--tz,1) - 1)*.5));line-height:1;color:var(--ink)}
 .opt{display:block;width:100%;text-align:left;margin-top:8px;padding:12px 14px;border:1.5px solid var(--line);border-radius:var(--rs);background:var(--card);font-size:calc(16px*var(--tz,1));line-height:1.35;min-height:48px;transition:border-color .15s,box-shadow .15s}
@@ -320,12 +323,12 @@ body.typing .wrap{padding-bottom:24px}
 .opt .done{color:var(--green);font-weight:700}
 
 /* welcome */
-.welcome{position:fixed;inset:0;z-index:60;background:#14304F radial-gradient(120% 70% at 50% -10%,#24507F 0%,#14304F 55%,#0E2440 100%);color:#fff;display:flex;align-items:center;justify-content:center;padding:calc(24px + var(--st)) calc(20px + var(--sr)) calc(24px + var(--sb)) calc(20px + var(--sl));overflow:auto}
+.welcome{position:fixed;inset:0;z-index:60;align-items:flex-start!important;background:#14304F radial-gradient(120% 70% at 50% -10%,#24507F 0%,#14304F 55%,#0E2440 100%);color:#fff;display:flex;align-items:center;justify-content:center;padding:calc(24px + var(--st)) calc(20px + var(--sr)) calc(24px + var(--sb)) calc(20px + var(--sl));overflow:auto}
 html.first #welcome[hidden]{display:flex!important}
 html.first #welcome:empty::after{content:'';width:72px;height:72px;border-radius:18px;background:url(icon-192.png) center/cover}
 :root[data-theme="dark"] .welcome{background:#0A1420}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .welcome{background:#0A1420}}
-.wbox{max-width:460px;width:100%;outline:none}
+.wbox{max-width:460px;width:100%;outline:none;margin:auto 0}
 .wbox img{width:72px;height:72px;border-radius:18px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
 .wtrust{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px;padding:0;list-style:none}
 .wtrust li{font-size:calc(13.5px*var(--tz,1));font-weight:600;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.1);color:#DCE6F0}
@@ -346,9 +349,6 @@ html.first #welcome:empty::after{content:'';width:72px;height:72px;border-radius
 .langs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .langs button{flex:1 1 120px;padding:10px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);font-weight:600;font-size:calc(16px*var(--tz,1));min-height:44px}
 .langs button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.wbox .langs{justify-content:flex-end;margin:0 0 8px}
-.wbox .langs button{flex:0 0 auto;padding:6px 14px;font-size:calc(14px*var(--tz,1));background:transparent;color:#fff;border-color:rgba(255,255,255,.3);min-height:40px}
-.wbox .langs button[aria-pressed="true"]{background:#fff;color:#14304F;border-color:#fff}
 
 .toast{position:fixed;left:0;right:0;margin:0 auto;width:max-content;bottom:calc(var(--navh,calc(72px + var(--sb))) + 14px);z-index:70;background:#14304F;color:#fff;padding:10px 18px;border-radius:18px;font-weight:600;font-size:calc(15px*var(--tz,1));line-height:1.35;box-shadow:0 6px 20px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.14);max-width:calc(100vw - 32px);text-align:center;opacity:0;transform:translateY(8px);transition:opacity .3s ease,transform .3s var(--ease);pointer-events:none}
 .toast.show{opacity:1;transform:none}
@@ -395,7 +395,7 @@ html.first #welcome:empty::after{content:'';width:72px;height:72px;border-radius
   .wrap{padding-left:calc(32px + var(--sl));padding-right:calc(32px + var(--sr))}
   .top-in{padding:0 16px}
   #p-practice:not([hidden]){display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:32px;align-items:start}
-  #p-practice .qcol{position:sticky;top:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px)) + 76px)}
+  #p-practice .qcol{position:sticky;top:calc(var(--st) + 76px)}
   #p-practice .acol{padding-top:4px}
   #answer{min-height:260px}
   #p-stories:not([hidden]),#p-tips:not([hidden]){columns:2;column-gap:28px}
@@ -914,6 +914,19 @@ function fixPad(){var t=document.querySelector('.top');if(!t)return;
   /* keep the bottom of every screen clear of the tab bar, whatever the text size */
   var nv=document.querySelector('nav.tabs');if(nv&&nv.offsetHeight)document.documentElement.style.setProperty('--navh',nv.offsetHeight+'px');}
 window.addEventListener('resize',fixPad);
+/* Safety net for Android edge-to-edge: if the app is drawing under the status bar but the phone reports no inset
+   (older WebView, or the inset arrives late), keep a status-bar-sized gap at the top and a small one at the bottom. */
+function insetGuard(){
+  if(!(NATIVE&&PLATFORM==='android'))return;
+  var de=document.documentElement,pr=document.createElement('div');
+  pr.style.cssText='position:fixed;visibility:hidden;pointer-events:none;padding-top:max(var(--safe-area-inset-top,0px),env(safe-area-inset-top,0px));padding-bottom:max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))';
+  document.body.appendChild(pr);var cs=getComputedStyle(pr),top=parseFloat(cs.paddingTop)||0,bot=parseFloat(cs.paddingBottom)||0;pr.remove();
+  var full=window.innerHeight>=screen.height-2;
+  de.style.setProperty('--st-min',(full&&top<1)?'28px':'0px');
+  de.style.setProperty('--sb-min',(full&&bot<1)?'20px':'0px');
+  fixPad();
+}
+window.addEventListener('resize',insetGuard);setTimeout(insetGuard,60);setTimeout(insetGuard,1200);
 function markDay(){var d=localDay();if(state.days.indexOf(d)<0){state.days.push(d);if(state.days.length>60)state.days=state.days.slice(-60);}}
 
 /* ---------- AI (through the Cleared for Takeoff server) ---------- */
@@ -2059,8 +2072,7 @@ function langButtons(){
   return '<div class="langs" role="group" aria-label="Language" data-noi18n>'+I18N.available.map(function(l){
     return '<button type="button" lang="'+l+'" data-lang="'+l+'" aria-pressed="'+(l===I18N.lang)+'">'+esc(I18N.names[l]||l)+'</button>';}).join('')+'</div>';
 }
-function pickLang(l){if(l&&l!==I18N.lang){saveDraft();save();I18N.set(l);}}
-function renderLangPick(){var el=$('langPick');if(!el)return;var h=langButtons();if(!h){el.parentNode.hidden=true;return;}el.innerHTML=h.replace(/^<div[^>]*>|<\/div>$/g,'');}
+function pickLang(l){if(l&&l!==I18N.lang){saveDraft();save();try{sessionStorage.setItem('cft-langdone','1');}catch(e){}I18N.set(l);}}
 
 /* ---------- Flight Deck (the ☰ menu in the top corner) ----------
    Main screens stay simple: settings, lists and extras all live here. Account and Interview Pass slot in here later. */
@@ -2081,6 +2093,7 @@ var ICON={
  save:'<path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 19h14"/>',
  party:'<path d="M4 20l5-14 9 9z"/><path d="M14 4l1-2M18 8l2-1M16 6l3-3M11 3c1 1 1 2 0 3"/>',
  luck:'<path d="M12 21v-6"/><circle cx="8.5" cy="8.5" r="3.5"/><circle cx="15.5" cy="8.5" r="3.5"/><circle cx="8.5" cy="13" r="3"/><circle cx="15.5" cy="13" r="3"/>',
+ globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>',
  plane:'<path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>'
 };
 function svgI(icon){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[icon]+'</svg>';}
@@ -2104,7 +2117,7 @@ function openDeck(){
     +'<h3 class="dsec">'+esc(T('Settings'))+'</h3>'
     +'<div class="dset"><span class="small" id="thLab">'+esc(T('Appearance'))+'</span><div class="seg" role="group" aria-labelledby="thLab">'
       +['auto','light','dark'].map(function(v){return '<button type="button" data-theme-v="'+v+'" aria-pressed="'+(th===v)+'">'+esc(T({auto:'Automatic',light:'Light',dark:'Dark'}[v]))+'</button>';}).join('')+'</div></div>'
-    +(lb?'<div class="dlang"><span class="small">'+esc(T('Language'))+'</span>'+lb+'</div>':'')
+    +(lb?'<div class="dlang" id="deckLang"><span class="dlab" id="langLab">'+svgI('globe')+'<span data-noi18n>Language · Idioma</span></span>'+lb.replace('aria-label="Language"','aria-labelledby="langLab"')+'</div>':'')
     +'<h3 class="dsec">'+esc(T('Help and info'))+'</h3>'
     +deckItem('tips','Tips','tips')
     +deckItem('feedback','Send feedback','feedback')
@@ -2214,7 +2227,7 @@ $('passLink').addEventListener('click',function(){openPass(planLeft()<=0?'out':'
 
 function renderWelcome(){
   var w=$('wbox');
-  if(wStep===0)w.innerHTML=langButtons()+'<img src="icon-192.png" alt="">'+'<h2>Welcome aboard! ✈️</h2><p>Practice real airline interview questions and get detailed feedback on every answer. Built by a gate agent who works the airport every day.</p>'
+  if(wStep===0)w.innerHTML='<img src="icon-192.png" alt="">'+'<h2>Welcome aboard! ✈️</h2><p>Practice real airline interview questions and get detailed feedback on every answer. Built by a gate agent who works the airport every day.</p>'
     +'<ul class="wtrust"><li>Real interview questions</li><li>English &amp; Español</li><li>Made by a gate agent</li></ul>'+dots(0)
     +'<p style="color:#fff;font-weight:600;margin-top:4px" id="wq">Which job are you going for? Tap one to start.</p><div role="group" aria-labelledby="wq">'+roleOpts(true)+'</div><button class="wskip" data-w="skip">Skip the tour</button>';
   else if(wStep===1)w.innerHTML='<h2>Practice out loud</h2><p>Each question comes with what interviewers are listening for. '+(VOICE?'Tap to talk (or type)':'Type your answer, or use the mic on your keyboard')+', then get feedback and a stronger version of your answer.</p>'
@@ -2227,7 +2240,6 @@ function renderWelcome(){
   w.setAttribute('tabindex','-1');w.focus({preventScroll:true});
 }
 $('wbox').addEventListener('click',function(e){
-  var lb=e.target.closest('[data-lang]');if(lb){pickLang(lb.getAttribute('data-lang'));return;}
   var r=e.target.closest('[data-role]');if(r){setRole(r.getAttribute('data-role'));wStep=1;renderWelcome();return;}
   var b=e.target.closest('[data-w]');if(!b)return;var a=b.getAttribute('data-w');
   if(a==='next'){wStep=2;renderWelcome();return;}
@@ -2245,6 +2257,7 @@ clearForm();renderStories();renderMusts();renderTips();renderChecklist();showLef
 $('luckMake').addEventListener('click',function(){state.luckSeen=state.interview;save();luckBanner();openCard('luck',false);});
 $('luckX').addEventListener('click',function(){state.luckSeen=state.interview;save();luckBanner();toast('OK. You can still make one from the ☰ menu.');});
 if(!state.welcomed){$('welcome').hidden=false;renderWelcome();}else document.documentElement.classList.remove('first');
+try{if(sessionStorage.getItem('cft-langdone')){sessionStorage.removeItem('cft-langdone');setTimeout(function(){toast(I18N.lang==='es'?'Idioma: Español':'Language: English');},400);}}catch(e){}
 kbdCheck();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fixPad);window.addEventListener('load',fixPad);
 })();
 </script>
