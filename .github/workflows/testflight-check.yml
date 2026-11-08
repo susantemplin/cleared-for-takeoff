@@ -1,0 +1,74 @@
+name: Check TestFlight build
+
+# Asks App Store Connect whether an uploaded iPhone build has finished processing
+# and is ready in TestFlight. Read-only: it never changes anything at Apple.
+# Runs by hand: Actions tab > Check TestFlight build > Run workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      build:
+        description: "Build number to check (blank = newest)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ASC_KEY_P8: ${{ secrets.APPSTORE_KEY_P8 }}
+      ASC_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+      BUILD: ${{ inputs.build }}
+    steps:
+      - name: Install helper
+        run: python3 -m pip install --quiet "pyjwt[crypto]" requests
+
+      - name: Wait for Apple to finish processing
+        shell: python3 {0}
+        run: |
+          import os, time, jwt, requests
+          key = os.environ["ASC_KEY_P8"]
+          bundle = "com.clearedfortakeoff.app"
+          want = os.environ.get("BUILD", "").strip()
+
+          def get(path, params=None):
+              now = int(time.time())
+              tok = jwt.encode({"iss": os.environ["ASC_ISSUER_ID"], "iat": now, "exp": now + 1000,
+                                "aud": "appstoreconnect-v1"}, key, algorithm="ES256",
+                               headers={"kid": os.environ["ASC_KEY_ID"], "typ": "JWT"})
+              r = requests.get("https://api.appstoreconnect.apple.com" + path, params=params,
+                               headers={"Authorization": "Bearer " + tok}, timeout=60)
+              r.raise_for_status()
+              return r.json()
+
+          apps = get("/v1/apps", {"filter[bundleId]": bundle})["data"]
+          if not apps:
+              raise SystemExit(f"No App Store Connect app found for {bundle}")
+          app_id = apps[0]["id"]
+          print("App:", apps[0]["attributes"]["name"], app_id)
+
+          deadline = time.time() + 40 * 60
+          while True:
+              params = {"filter[app]": app_id, "sort": "-uploadedDate", "limit": 5}
+              if want:
+                  params["filter[version]"] = want
+              builds = get("/v1/builds", params)["data"]
+              if not builds:
+                  print("Build not visible at Apple yet...")
+              else:
+                  b = builds[0]["attributes"]
+                  state = b.get("processingState")
+                  print(f"Build {b.get('version')} uploaded {b.get('uploadedDate')}: {state}",
+                        "| expired" if b.get("expired") else "")
+                  if state == "VALID":
+                      print(f"READY: build {b.get('version')} is processed and available in TestFlight.")
+                      break
+                  if state in ("FAILED", "INVALID"):
+                      raise SystemExit(f"Apple rejected build {b.get('version')} during processing: {state}")
+              if time.time() > deadline:
+                  raise SystemExit("Still processing after 40 minutes; run this check again later.")
+              time.sleep(60)
