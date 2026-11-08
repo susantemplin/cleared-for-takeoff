@@ -146,9 +146,6 @@ button.pp:active{background:rgba(255,255,255,.18)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tool.mic{background:var(--yellow);color:#14304F;border-color:var(--yellow)}}
 .tool.mic.on{background:var(--red);border-color:var(--red);color:#fff;animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{50%{box-shadow:0 0 0 7px rgba(184,58,46,.18)}}
-.tool.tclear{padding:8px 12px;font-size:calc(18px*var(--ui,1)*var(--tz,1));line-height:1;margin-left:-4px}
-.tool.timer.warm{border-color:var(--yellow);background:rgba(242,185,12,.18)}
-.tool.timer.hot{border-color:var(--yellow);background:rgba(242,185,12,.32);color:var(--amber)}
 .longnote{color:var(--amber);font-weight:600}
 .anshint{margin:10px 0 0;font-size:calc(14px*var(--ui,1)*var(--tz,1));color:var(--ink2);line-height:1.4}
 textarea{width:100%;min-height:150px;margin-top:8px;padding:12px 14px;border:1.5px solid var(--line);border-radius:var(--r);background:var(--card);resize:vertical;line-height:1.5;transition:border-color .2s,box-shadow .2s}
@@ -481,8 +478,7 @@ html.native{--ui:.88}
    <div class="acol">
     <div class="tools">
       <button class="tool mic" id="btnMic" hidden><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span>Tap to talk</span></button>
-      <button class="tool timer" id="btnTimer" aria-label="Practice timer"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span id="timerTxt">Timer</span></button>
-      <button class="tool tclear" id="btnTimerClear" aria-label="Clear the timer" hidden>&times;</button>
+      <button class="tool" id="btnNextTool"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg><span>Next question</span></button>
       <button class="tool" id="btnUseStory"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h7"/></svg><span>Use my story</span></button>
     </div>
     <p class="anshint" id="ansHint">Answer the way you'd say it out loud. Typos are fine.</p>
@@ -1130,7 +1126,6 @@ function showQ(){
   $('feedback').hidden=true;$('fbError').hidden=true;endWait();$('btnFeedback').disabled=false;
   var d=document.querySelector('.hint');if(d)d.open=false;
   $('btnUseStory').hidden=q[0]!=='Behavioral';
-  timerReset();
   tried=false;if(!shownThisVisit[curKey]){shownThisVisit[curKey]=1;track('shown',q);}
 }
 function showSet(){
@@ -1268,7 +1263,7 @@ async function nMicClick(){
       if(!p||p.speechRecognition!=='granted'){toast('Allow the microphone to use Tap to talk, or use the mic on your keyboard.');return;}}
     catch(e){voiceOff();toast('Voice typing isn’t available here. Use the mic on your keyboard instead.');return;}
     nGrace=false;clearTimeout(nGraceT);
-    var cur=$('answer').value;baseText=cur&&!/\s$/.test(cur)?cur+' ':cur;nSeg='';nLastPaint=null;nEmpty=0;nWant=true;listening=true;micUI();hap('medium');autoTimer();nSession();
+    var cur=$('answer').value;baseText=cur&&!/\s$/.test(cur)?cur+' ':cur;nSeg='';nLastPaint=null;nEmpty=0;nWant=true;listening=true;micUI();hap('medium');nSession();
   }finally{nStarting=false;}
 }
 if(NSR)nListen();
@@ -1294,31 +1289,12 @@ $('btnMic').addEventListener('click',function(){
       else if(ev.error==='not-allowed')toast('Allow the microphone to use Tap to talk, or use the mic on your keyboard.');
       else if(ev.error!=='no-speech'&&ev.error!=='aborted')toast('Voice typing stopped. Tap to talk to keep going.');};
     rec.onend=function(){if(listening){listening=false;micUI();}saveDraft();};
-    rec.start();listening=true;micUI();autoTimer();
+    rec.start();listening=true;micUI();
   }catch(e){listening=false;micUI();toast('Voice typing isn’t available here. Use the mic on your keyboard instead.');}
 });
 
-/* ---------- practice timer ---------- */
-var timerOn=false,timerStart=0,timerAcc=0,timerI=null,timerFlag=false;
-function fmt(s){return Math.floor(s/60)+':'+('0'+Math.floor(s%60)).slice(-2);}
-function timerPaint(){var s=timerAcc+(timerOn?(Date.now()-timerStart)/1000:0),b=$('btnTimer');
-  var fresh=s<0.5&&!timerOn;
-  var ic=timerOn?'<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" style="width:calc(14px*var(--tz,1));height:calc(14px*var(--tz,1));vertical-align:-1px;margin-right:5px"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>'
-    :'<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" style="width:calc(14px*var(--tz,1));height:calc(14px*var(--tz,1));vertical-align:-1px;margin-right:5px"><path d="M7 4l13 8-13 8z"/></svg>';
-  $('timerTxt').innerHTML=fresh?'Timer':ic+fmt(s)+(s>=120?' Wrap it up':'');
-  b.setAttribute('aria-label',fresh?'Start practice timer':(timerOn?'Pause timer':'Resume timer'));
-  $('btnTimerClear').hidden=fresh;
-  b.classList.toggle('warm',s>=90&&s<120);b.classList.toggle('hot',s>=120);
-  /* one gentle heads-up at about 2 minutes, never an alarm */
-  if(s>=120&&!timerFlag){timerFlag=true;hap('medium');toast('That’s about 2 minutes. Start wrapping up with how it ended.');}}
-function timerToggle(){if(timerOn){timerAcc+=(Date.now()-timerStart)/1000;timerOn=false;clearInterval(timerI);}else{timerStart=Date.now();timerOn=true;timerI=setInterval(timerPaint,250);}timerPaint();}
-function timerReset(){timerOn=false;clearInterval(timerI);timerAcc=0;timerFlag=false;timerPaint();}
-function autoTimer(){if(!timerOn&&timerAcc<0.5)timerToggle();} /* Tap to talk starts the timer too */
-$('btnTimer').addEventListener('click',function(){
-  var fresh=timerAcc<0.5&&!timerOn;timerToggle();
-  if(fresh)toast('Timer started. Tap it to pause, \u00D7 to clear. Aim for 1 to 2 minutes.');
-});
-$('btnTimerClear').addEventListener('click',timerReset);
+/* Practice timer removed (Susan, Nov 8): a ticking clock added pressure for nervous applicants. */
+$('btnNextTool').addEventListener('click',function(){$('btnNext').click();});
 
 /* ---------- sheets (pop-up panels) ---------- */
 var lastFocus=null,closeT=null;
@@ -1538,7 +1514,6 @@ function endWait(){clearInterval(tipI);$('thinking').hidden=true;}
 $('btnFeedback').addEventListener('click',async function(){
   if(busyTok===fbToken){toast('Still checking your answer, one moment\u2026');return;}
   if(listening){stopMic();await new Promise(function(r){setTimeout(r,700);});}
-  if(timerOn)timerToggle();
   var t=$('answer').value.trim(),q=curQ(),btn=this,why='',mode=modeFor(q[0]),k=qKey(q);
   $('fbError').hidden=true;
   if(t.split(/\s+/).filter(Boolean).length<8){$('fbError').textContent='Write at least a few sentences first, the way you’d answer out loud.';$('fbError').hidden=false;return;}
@@ -2293,7 +2268,7 @@ function renderWelcome(){
     +'<ul class="wtrust"><li>Real interview questions</li><li>English &amp; Español</li><li>Made by a gate agent</li></ul>'+dots(0)
     +'<p style="color:#fff;font-weight:600;margin-top:4px" id="wq">Which job are you going for? Tap one to start.</p><div role="group" aria-labelledby="wq">'+roleOpts(true)+'</div><button class="wskip" data-w="skip">Skip the tour</button>';
   else if(wStep===1)w.innerHTML='<h2>Practice out loud</h2><p>Each question comes with what interviewers are listening for. '+(VOICE?'Tap to talk (or type)':'Type your answer, or use the mic on your keyboard')+', then get feedback and a stronger version of your answer.</p>'
-    +'<div class="parts"><div><b>'+(VOICE?'Tap to talk:':'Talk it out:')+'</b> say it like you would in the room</div><div><b>Timer:</b> aim for 1 to 2 minutes</div><div><b>Feedback:</b> a score, what worked, and how to make it stronger</div></div>'+dots(1)
+    +'<div class="parts"><div><b>'+(VOICE?'Tap to talk:':'Talk it out:')+'</b> say it like you would in the room</div><div><b>Feedback:</b> a score, what worked, and how to make it stronger</div></div>'+dots(1)
     +'<button class="wgo" data-w="next">Next</button><button class="wskip" data-w="skip">Skip</button>';
   else w.innerHTML='<h2>One good story, many questions</h2><p>Build a few stories in My stories. Every great story has 3 parts:</p>'
     +'<div class="parts"><div><b>1. The problem</b></div><div><b>2. What I did</b></div><div><b>3. How it ended</b></div></div><p>Then bend each one to fit whatever they ask.</p>'+dots(2)
