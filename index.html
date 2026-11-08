@@ -132,6 +132,7 @@ button.pp:active{background:rgba(255,255,255,.18)}
 .speak svg{width:18px;height:18px}.speak.on{background:var(--sky);border-color:var(--sky);color:#fff}
 .story .speak{margin-top:8px}
 .passme{margin:0 0 10px;padding:10px 12px;border-radius:var(--rs);background:var(--tint);font-weight:600}
+.dabout .dquote{display:block;color:var(--ink);font-weight:600;font-size:calc(16px*var(--ui,1)*var(--tz,1))}.dabout .dsig{display:block;margin:2px 0 8px;font-style:italic}
 .agree{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-weight:600;cursor:pointer}.agree input{width:24px;height:24px;min-width:24px;margin:1px 0 0;accent-color:var(--sky)}
 .qnext{background:var(--tint);border:0;border-radius:999px;width:44px;height:44px;min-width:44px;margin-left:6px;display:inline-flex;align-items:center;justify-content:center;color:var(--sky);padding:0;cursor:pointer}.qnext svg{width:22px;height:22px}
 .qpick{background:var(--tint);border:0;border-radius:999px;padding:6px 11px;font-size:calc(14px*var(--ui,1)*var(--tz,1));font-weight:600;color:var(--sky);min-height:36px}
@@ -2238,7 +2239,7 @@ function openDeck(){
     +deckLink('privacy.html','Privacy Policy','privacy')
     +deckLink('terms.html','Terms of Service','terms')
     +deckItem('reset','Reset my progress','reset','danger')
-    +'<p class="dabout">'+esc(T('Built by a gate agent at Phoenix Sky Harbor. Every question and tip comes from real airport experience, so you can walk into your interview ready.'))+(ver?'<br>'+esc(ver):'')+'</p>'
+    +'<p class="dabout"><span class="dquote">'+esc(T('Airline jobs are some of the most competitive jobs out there. I built this app to give you a leg up.'))+'</span><span class="dsig">'+esc(T('— Susan, gate agent at Phoenix Sky Harbor'))+'</span>'+esc(T('Every question and tip comes from real airport experience.'))+(ver?'<br>'+esc(ver):'')+'</p>'
   +'</div>';
   openSheet(T('Flight Deck'),h,deckClick);
 }
