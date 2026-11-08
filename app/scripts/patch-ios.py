@@ -34,6 +34,8 @@ p['UISupportedInterfaceOrientations~ipad'] = [
     'UIInterfaceOrientationPortrait', 'UIInterfaceOrientationPortraitUpsideDown',
     'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight']
 p.pop('UIRequiresFullScreen', None)
+# Link for the home-screen widget: clearedfortakeoff://qod opens today's question
+p['CFBundleURLTypes'] = [{'CFBundleURLName': 'com.clearedfortakeoff.app', 'CFBundleURLSchemes': ['clearedfortakeoff']}]
 with open(PLIST, 'wb') as fh:
     plistlib.dump(p, fh)
 print('Info.plist updated')

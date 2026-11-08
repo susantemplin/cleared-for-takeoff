@@ -123,6 +123,7 @@ button.pp:active{background:rgba(255,255,255,.18)}
 .strip .meta .mr{display:flex;align-items:center;gap:2px;margin-left:auto}
 .qod{font-size:calc(12.5px*var(--tz,1));font-weight:700;padding:2px 9px;border-radius:999px;background:rgba(242,185,12,.2);color:var(--amber);white-space:nowrap}
 .qair{font-size:calc(12.5px*var(--tz,1));font-weight:700;padding:2px 9px;border-radius:999px;background:var(--tint);color:var(--sky);white-space:nowrap}
+.agree{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-weight:600;cursor:pointer}.agree input{width:24px;height:24px;min-width:24px;margin:1px 0 0;accent-color:var(--sky)}
 .qnext{background:var(--tint);border:0;border-radius:999px;width:44px;height:44px;min-width:44px;margin-left:6px;display:inline-flex;align-items:center;justify-content:center;color:var(--sky);padding:0;cursor:pointer}.qnext svg{width:22px;height:22px}
 .qpick{background:var(--tint);border:0;border-radius:999px;padding:6px 11px;font-size:calc(14px*var(--tz,1));font-weight:600;color:var(--sky);min-height:36px}
 .favbtn{width:calc(44px*var(--tz,1));height:calc(44px*var(--tz,1));margin:-4px 0;border:0;border-radius:999px;background:none;color:var(--ink2);display:grid;place-items:center;padding:0}
@@ -835,7 +836,7 @@ var WAIT_TIPS=[
 /* ---------- storage (per viewer, on this device) ---------- */
 var KEY='cft_v1',state={role:'fa',set:'core',answered:0,stories:[],seen:{},ai:{day:'',used:0,server:-1},
   welcomed:false,drafts:{},history:{},days:[],interview:'',checks:{},rem:{on:false,time:'19:00'},good:0,revAt:'',
-  airline:'',favs:{},qod:'',luckSeen:'',cardName:'',billing:false,wk:{week:'',used:0},free:{used:0},pass:{start:'',used:0}};
+  airline:'',favs:{},qod:'',luckSeen:'',cardName:'',billing:false,aiOk:'',wk:{week:'',used:0},free:{used:0},pass:{start:'',used:0}};
 function obj(o){return o&&typeof o==='object'&&!Array.isArray(o)?o:{};}
 function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&typeof o==='object'){
   state.role=ROLES[o.role]?o.role:'fa';state.set=SETS[o.set]?o.set:'core';state.answered=+o.answered||0;
@@ -853,6 +854,7 @@ function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if
   state.billing=o.billing===true;var wk=obj(o.wk),ps=obj(o.pass);
   state.wk={week:/^\d{4}-\d\d-\d\d$/.test(wk.week||'')?wk.week:'',used:Math.max(0,+wk.used||0)};
   state.free={used:Math.max(0,+obj(o.free).used||0)};
+  state.aiOk=o.aiOk==='yes'||o.aiOk==='no'?o.aiOk:'';
   state.pass={start:isNaN(Date.parse(ps.start))?'':String(ps.start),used:Math.max(0,+ps.used||0)};
 }}}catch(e){}
   var needSave=false;
@@ -962,6 +964,38 @@ function showLeft(){
     return;}
   if(pl)pl.hidden=true;
   var m=reviewsLeft();el.textContent=m===0?'No AI reviews left today. They reset at midnight Arizona time.':m+' AI review'+(m===1?'':'s')+' left today';}
+
+/* ---------- AI consent (Apple rule 5.1.2(i)) ----------
+   Before the first answer goes to the AI, say plainly what is sent and to whom, and ask. The box starts unticked.
+   'Not now' keeps everything else working (questions, tips, My stories); AI feedback can be switched on or off
+   any time in the Flight Deck > Settings. WORDING: drafted in the A08 Doc, pending Susan's final OK. */
+/* Phone app only for now (Apple's rule); the website joins once Susan OKs the wording. */
+var AI_CONSENT=NATIVE;
+function aiConsent(go){if(!AI_CONSENT||state.aiOk==='yes')return true;openConsent(go);return false;}
+function openConsent(go,fromDeck){
+  var h='<p style="margin-top:0">'+esc(T('To coach you, the app sends your typed answer, the question and the job you picked to our server and then to Anthropic, the AI company that writes your feedback.'))+'</p>'
+    +'<ul class="passlist">'
+      +'<li>'+esc(T('We don’t keep your answers after your feedback is written.'))+'</li>'
+      +'<li>'+esc(T('Anthropic can’t use them to train its AI.'))+'</li>'
+      +'<li>'+esc(T('We never send your name, email, location or any recording.'))+'</li>'
+      +'<li>'+esc(T('Tip: leave out private details like your full name or employee number.'))+'</li>'
+    +'</ul>'
+    +'<label class="agree"><input type="checkbox" id="aiAgree"> <span>'+esc(T('I agree to send my answers to Anthropic for AI feedback'))+'</span></label>'
+    +'<button type="button" class="btn btn-go" style="width:100%;margin-top:12px" data-act="aiyes" disabled>'+esc(T('Agree and continue'))+'</button>'
+    +'<button type="button" class="btn btn-plain" style="width:100%;margin-top:8px" data-act="ainot">'+esc(T('Not now'))+'</button>'
+    +'<p class="small" style="margin-top:10px">'+esc(T('You can change this anytime in the Flight Deck under Settings.'))+' <a href="privacy.html">'+esc(T('Privacy Policy'))+'</a></p>';
+  openSheet(T('Before your first feedback'),h,function(e){
+    var b=e.target.closest('[data-act]');if(!b)return;var a=b.getAttribute('data-act');
+    if(a==='aiyes'){if(!$('aiAgree').checked)return;state.aiOk='yes';save();hap('success');closeSheet();
+      if(fromDeck)openDeck();else{toast(T('Thanks! Getting your feedback now.'));if(go)setTimeout(go,250);}}
+    else if(a==='ainot'){state.aiOk='no';save();closeSheet();if(fromDeck)openDeck();else toast(T('No problem. You can still practice, and turn AI feedback on later in the Flight Deck.'));}
+  });
+  var cb=$('aiAgree'),yes=$('sheetBody').querySelector('[data-act="aiyes"]');
+  cb.addEventListener('change',function(){yes.disabled=!cb.checked;});
+}
+function aiSwitchHTML(){
+  return '<div class="dset"><div class="switchrow"><span id="aiLab">'+esc(T('AI feedback (Anthropic)'))+'</span><button type="button" class="switch" id="aiSwitch" role="switch" aria-checked="'+(state.aiOk==='yes')+'" aria-labelledby="aiLab" data-act="aiswitch"></button></div></div>';
+}
 
 /* ---------- Interview Pass (Google Play, through RevenueCat) ----------
    Only in the store apps, and only once the Pass is really for sale in that store. Until then the app
@@ -1494,6 +1528,7 @@ $('btnFeedback').addEventListener('click',async function(){
   var t=$('answer').value.trim(),q=curQ(),btn=this,why='',mode=modeFor(q[0]),k=qKey(q);
   $('fbError').hidden=true;
   if(t.split(/\s+/).filter(Boolean).length<8){$('fbError').textContent='Write at least a few sentences first, the way you’d answer out loud.';$('fbError').hidden=false;return;}
+  if(!aiConsent(function(){$('btnFeedback').click();}))return;
   if(billingOn()&&planLeft()<=0){openPass('out');return;}
   busyTok=fbToken;btn.disabled=true;tried=true;$('feedback').hidden=true;hap('light');
   var my=fbToken,html=null,perfect=false,errMsg='',sc=0,offline=navigator.onLine===false;
@@ -1808,6 +1843,7 @@ $('storyList').addEventListener('click',async function(e){
   if(b.hasAttribute('data-del')){var i=+b.getAttribute('data-del');if(confirmDelete(b)){var gone=state.stories.splice(i,1)[0];if(gone&&editing===gone.id){clearForm();formShown(false);}save();stats();renderStories();renderMusts();}return;}
   if(b.hasAttribute('data-polish')){
     var sp=state.stories[+b.getAttribute('data-polish')];if(!sp)return;var sid=sp.id;
+    if(!aiConsent(function(){if(b.isConnected)b.click();}))return;
     if(billingOn()&&planLeft()<=0){openPass('out');return;}
     var status=function(msg){var x=storyIdx(sid),el=x>=0&&document.querySelector('[data-status="'+x+'"]');if(el)el.textContent=msg;var bb=x>=0&&document.querySelector('[data-polish="'+x+'"]');if(bb)bb.disabled=!!msg&&/Writing/.test(msg);};
     status('Writing your answer\u2026 this can take up to a minute.');
@@ -2053,6 +2089,10 @@ if(NATIVE){
       else{stopMic(true);saveDraft();}
     });}catch(e){}
     textSize();billingInit();
+    /* Home-screen widget (iPhone): tapping it opens clearedfortakeoff://qod, which goes straight to today's question */
+    var openUrl=function(u){if(/^clearedfortakeoff:\/\/qod/i.test(String(u||''))&&$('welcome').hidden){closeSheet();goQod();}};
+    try{APP.addListener('appUrlOpen',function(d){openUrl(d&&d.url);});}catch(e){}
+    quiet(pcall(APP,'getLaunchUrl').then(function(r){openUrl(r&&r.url);}));
     quiet(pcall(APP,'getInfo').then(function(i){if(i&&i.version){$('appVer').textContent='App version '+i.version+(i.build?' ('+i.build+')':'');$('appVer').hidden=false;}}));
   }
   /* Status bar icons stay light on the navy header; the bottom bar follows light or dark mode */
@@ -2123,6 +2163,7 @@ function openDeck(){
     +'<h3 class="dsec">'+esc(T('Settings'))+'</h3>'
     +'<div class="dset"><span class="small" id="thLab">'+esc(T('Appearance'))+'</span><div class="seg" role="group" aria-labelledby="thLab">'
       +['auto','light','dark'].map(function(v){return '<button type="button" data-theme-v="'+v+'" aria-pressed="'+(th===v)+'">'+esc(T({auto:'Automatic',light:'Light',dark:'Dark'}[v]))+'</button>';}).join('')+'</div></div>'
+    +(AI_CONSENT?aiSwitchHTML():'')
     +(lb?'<div class="dlang" id="deckLang"><span class="dlab" id="langLab">'+svgI('globe')+'<span data-noi18n>Language · Idioma</span></span>'+lb.replace('aria-label="Language"','aria-labelledby="langLab"')+'</div>':'')
     +'<h3 class="dsec">'+esc(T('Help and info'))+'</h3>'
     +deckItem('tips','Tips','tips')
@@ -2153,6 +2194,7 @@ function deckClick(e){
   else if(a==='countdown')openCountdown(true);
   else if(a==='job')openJob();
   else if(a==='pass')openPass();
+  else if(a==='aiswitch'){hap('light');if(state.aiOk==='yes'){state.aiOk='no';save();b.setAttribute('aria-checked','false');toast(T('AI feedback is off. Turn it back on here any time.'));}else openConsent(null,true);}
   else if(a==='hired')openCard('hired',true);
   else if(a==='luck')openCard('luck',true);
 }

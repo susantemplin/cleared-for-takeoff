@@ -65,6 +65,13 @@ jobs:
       - name: Apply app settings (icon, permissions, version)
         run: python3 scripts/patch-ios.py
 
+      # Home-screen widget: today's question of the day, same as the app (app/ios-widget)
+      - name: Add the Question of the day widget
+        run: |
+          node scripts/make-widget.mjs
+          gem list -i xcodeproj >/dev/null 2>&1 || sudo gem install xcodeproj --no-document
+          ruby scripts/add-widget.rb
+
       - name: Check that the app builds (no Apple account needed)
         if: env.ASC_KEY_P8 == ''
         run: |
@@ -98,6 +105,9 @@ jobs:
             -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/App.xcarchive" \
             DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_STYLE=Automatic CURRENT_PROJECT_VERSION="$BUILD" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" | tail -60
+          # The widget must be inside the app, or it won't show up on the phone
+          ls "$RUNNER_TEMP/App.xcarchive/Products/Applications/App.app/PlugIns/TakeoffWidget.appex" >/dev/null \
+            && echo "Widget is inside the app" || { echo "::error::TakeoffWidget.appex is missing from the app"; exit 1; }
           xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export" \
             -allowProvisioningUpdates \
