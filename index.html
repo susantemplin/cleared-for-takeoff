@@ -123,6 +123,7 @@ button.pp:active{background:rgba(255,255,255,.18)}
 .strip .meta .mr{display:flex;align-items:center;gap:2px;margin-left:auto}
 .qod{font-size:calc(12.5px*var(--tz,1));font-weight:700;padding:2px 9px;border-radius:999px;background:rgba(242,185,12,.2);color:var(--amber);white-space:nowrap}
 .qair{font-size:calc(12.5px*var(--tz,1));font-weight:700;padding:2px 9px;border-radius:999px;background:var(--tint);color:var(--sky);white-space:nowrap}
+.qnext{background:var(--tint);border:0;border-radius:999px;width:44px;height:44px;min-width:44px;margin-left:6px;display:inline-flex;align-items:center;justify-content:center;color:var(--sky);padding:0;cursor:pointer}.qnext svg{width:22px;height:22px}
 .qpick{background:var(--tint);border:0;border-radius:999px;padding:6px 11px;font-size:calc(14px*var(--tz,1));font-weight:600;color:var(--sky);min-height:36px}
 .favbtn{width:calc(44px*var(--tz,1));height:calc(44px*var(--tz,1));margin:-4px 0;border:0;border-radius:999px;background:none;color:var(--ink2);display:grid;place-items:center;padding:0}
 .favbtn svg{width:calc(22px*var(--tz,1));height:calc(22px*var(--tz,1))}
@@ -456,7 +457,7 @@ html.tallhdr #p-practice .qcol{position:static}
     </div>
     <p class="set-note" id="setNote"></p>
     <div class="strip">
-      <div class="badges" id="qBadge" hidden></div><div class="meta"><span class="mk" id="qKind">Behavioral</span><span class="mr"><button class="favbtn" id="btnFav" aria-pressed="false" aria-label="Star this question"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17.1 6.6 20l1-6.1-4.4-4.3 6.1-.9z"/></svg></button><button class="qpick" id="qCount" aria-haspopup="dialog">Question 1 of 30 &#9662;</button></span></div>
+      <div class="badges" id="qBadge" hidden></div><div class="meta"><span class="mk" id="qKind">Behavioral</span><span class="mr"><button class="favbtn" id="btnFav" aria-pressed="false" aria-label="Star this question"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17.1 6.6 20l1-6.1-4.4-4.3 6.1-.9z"/></svg></button><button class="qpick" id="qCount" aria-haspopup="dialog">Question 1 of 30 &#9662;</button><button type="button" class="qnext" id="btnNextTop" aria-label="Next question"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></span></div>
       <h2 id="qText">Loading…</h2>
       <p class="qhelp" id="qHelp"></p>
       <details class="hint"><summary>What they're listening for</summary><p id="qTip" style="margin:6px 0 0"></p><p class="qair-line" id="qAir" hidden></p></details>
@@ -834,7 +835,7 @@ var WAIT_TIPS=[
 /* ---------- storage (per viewer, on this device) ---------- */
 var KEY='cft_v1',state={role:'fa',set:'core',answered:0,stories:[],seen:{},ai:{day:'',used:0,server:-1},
   welcomed:false,drafts:{},history:{},days:[],interview:'',checks:{},rem:{on:false,time:'19:00'},good:0,revAt:'',
-  airline:'',favs:{},qod:'',luckSeen:'',cardName:'',billing:false,wk:{week:'',used:0},pass:{start:'',used:0}};
+  airline:'',favs:{},qod:'',luckSeen:'',cardName:'',billing:false,wk:{week:'',used:0},free:{used:0},pass:{start:'',used:0}};
 function obj(o){return o&&typeof o==='object'&&!Array.isArray(o)?o:{};}
 function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&typeof o==='object'){
   state.role=ROLES[o.role]?o.role:'fa';state.set=SETS[o.set]?o.set:'core';state.answered=+o.answered||0;
@@ -851,6 +852,7 @@ function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if
   state.airline=AIRLINES[o.airline]?o.airline:'';state.favs=obj(o.favs);state.qod=/^\d{4}-\d\d-\d\d$/.test(o.qod||'')?o.qod:'';state.luckSeen=String(o.luckSeen||'').slice(0,10);state.cardName=String(o.cardName||'').slice(0,16);
   state.billing=o.billing===true;var wk=obj(o.wk),ps=obj(o.pass);
   state.wk={week:/^\d{4}-\d\d-\d\d$/.test(wk.week||'')?wk.week:'',used:Math.max(0,+wk.used||0)};
+  state.free={used:Math.max(0,+obj(o.free).used||0)};
   state.pass={start:isNaN(Date.parse(ps.start))?'':String(ps.start),used:Math.max(0,+ps.used||0)};
 }}}catch(e){}
   var needSave=false;
@@ -955,20 +957,23 @@ function showLeft(){
   var el=$('leftNote'),pl=$('passLink');
   if(billingOn()){var n=planLeft(),pa=passActive();
     el.textContent=pa?(n===0?'You’ve used all 50 Interview Pass reviews.':n+' Interview Pass review'+(n===1?'':'s')+' left')
-      :(n===0?'No free AI reviews left this week.':n+' free AI review'+(n===1?'':'s')+' left this week');
+      :(n===0?'You’ve used your free AI review.':n+' free AI review'+(n===1?'':'s')+' left');
     if(pl){pl.hidden=pa&&n>0;pl.textContent=T(pa?'Interview Pass':(n===0?'Get 50 more with the Interview Pass':'Interview Pass'));}
     return;}
   if(pl)pl.hidden=true;
   var m=reviewsLeft();el.textContent=m===0?'No AI reviews left today. They reset at midnight Arizona time.':m+' AI review'+(m===1?'':'s')+' left today';}
 
 /* ---------- Interview Pass (Google Play, through RevenueCat) ----------
-   Only in the Android app, and only once the Pass is really for sale in Play Console. Until then the app
+   Only in the store apps, and only once the Pass is really for sale in that store. Until then the app
    works exactly as before (free AI reviews with the server's daily limit).
-   Once it's for sale: free = 3 AI reviews a week (Monday to Sunday, Arizona time);
-   the Pass = $14.99 one time, 50 AI reviews over 30 days, doesn't renew (buy it again any time after). */
-var RC_KEY='goog_AuKoVBsjjdzhCJKolzaNrOiWiJJ'; /* RevenueCat's public app key: made to ship inside the app, it can only show and sell products */
-var PASS_PRODUCT='interview_pass_30',PASS_DAYS=30,PASS_REVIEWS=50,FREE_WEEK=3;
-var RC=PLATFORM==='android'?plug('Purchases'):null,passPkg=null,passBusy=false,rcReady=false;
+   Once it's for sale (Susan, Nov 4): free = ONE AI review in total, to try it;
+   the Pass = $14.99 one time, 50 AI reviews over 30 days, doesn't renew (buy it again any time after).
+   iPhone: paste RevenueCat's public Apple key ('appl_...') into RC_KEYS.ios once the Pass is set up in App Store Connect. */
+var RC_KEYS={android:'goog_AuKoVBsjjdzhCJKolzaNrOiWiJJ',ios:''}; /* RevenueCat's public app keys: made to ship inside the app, they can only show and sell products */
+var RC_KEY=RC_KEYS[PLATFORM]||'';
+var PASS_PRODUCT='interview_pass_30',PASS_DAYS=30,PASS_REVIEWS=50,FREE_TOTAL=1;
+var RC=RC_KEY?plug('Purchases'):null,passPkg=null,passBusy=false,rcReady=false;
+var STORE=PLATFORM==='ios'?'the App Store':'Google Play',STORE_ACCT=PLATFORM==='ios'?'Apple ID':'Google account';
 function phxWeek(){var d=new Date(Date.now()-7*3600000);d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);return d.toISOString().slice(0,10);}
 /* The weekly limit starts the first time the Pass shows up for sale, and stays on after that (even offline). */
 function billingOn(){return !!(RC&&(passPkg||state.billing||passActive()));}
@@ -976,10 +981,10 @@ function passEndsAt(){return state.pass.start?Date.parse(state.pass.start)+PASS_
 function passActive(){return Date.now()<passEndsAt();}
 function planLeft(){
   if(passActive())return Math.max(0,PASS_REVIEWS-state.pass.used);
-  return state.wk.week===phxWeek()?Math.max(0,FREE_WEEK-state.wk.used):FREE_WEEK;
+  return Math.max(0,FREE_TOTAL-state.free.used);
 }
 function countPlan(){if(!billingOn())return;
-  if(passActive())state.pass.used++;else{if(state.wk.week!==phxWeek())state.wk={week:phxWeek(),used:0};state.wk.used++;}}
+  if(passActive())state.pass.used++;else state.free.used++;}
 /* The newest Pass purchase on this Google account decides the 30 days. A new purchase starts a fresh 50. */
 function passFromInfo(ci){
   var tx=((ci&&ci.nonSubscriptionTransactions)||[]).filter(function(t){return t&&String(t.productIdentifier||'').indexOf(PASS_PRODUCT)===0&&t.purchaseDate;})
@@ -1011,14 +1016,14 @@ function openPass(why){
       +'<p>'+esc(T(left+' AI review'+(left===1?'':'s')+' left'))+'<br>'+esc(T('Ends '+new Date(passEndsAt()).toLocaleDateString(I18N.lang==='es'?'es-US':'en-US',{month:'long',day:'numeric'})))+'</p>'
       +(left===0?'<p>'+esc(T('You’ve used all 50. You can buy a new Pass now and get 50 more for the next 30 days.'))+'</p>':'');
   }else{
-    h=(why==='out'?'<p class="passnow"><b>'+esc(T('You’ve used this week’s 3 free AI reviews.'))+'</b> '+esc(T('They come back on Monday.'))+'</p>':'')
+    h=(why==='out'?'<p class="passnow"><b>'+esc(T('You’ve used your free AI review.'))+'</b> '+esc(T('Keep practicing with the Interview Pass.'))+'</p>':'')
       +'<p>'+esc(T('Practicing every day before your interview? The Interview Pass gives you:'))+'</p>'
       +'<ul class="passlist"><li>'+esc(T('50 AI reviews to use over 30 days'))+'</li><li>'+esc(T('Feedback on every answer and story polishing'))+'</li><li>'+esc(T('One payment. It doesn’t renew, so nothing to cancel.'))+'</li></ul>';
   }
   if(!pa||left===0)h+=(passPkg?'<button type="button" class="btn btn-go" style="width:100%;margin-top:14px" data-act="passbuy">'+esc(T('Get the Interview Pass'))+' · '+esc(passPrice())+'</button>'
       :'<p class="small" style="margin-top:12px">'+esc(T('The Interview Pass can’t be reached right now. Check your internet and try again.'))+'</p>');
   h+='<button type="button" class="linkbtn" style="display:block;margin:6px auto 0" data-act="passrestore">'+esc(T('Already bought it? Restore my Pass'))+'</button>'
-    +'<p class="small" style="margin-top:8px">'+esc(T('Paid through Google Play. Free reviews: 3 a week.'))+'</p>';
+    +'<p class="small" style="margin-top:8px">'+esc(T('Paid through '+STORE+'. Your first AI review is free.'))+'</p>';
   openSheet(T('Interview Pass'),h,function(e){
     var b=e.target.closest('[data-act]');if(!b)return;var a=b.getAttribute('data-act');
     if(a==='passbuy')buyPass(b);else if(a==='passrestore')restorePass(b);
@@ -1036,7 +1041,7 @@ async function restorePass(b){
   if(passBusy)return;passBusy=true;if(b)b.disabled=true;
   try{if(!rcReady){await pcall(RC,'configure',{apiKey:RC_KEY});rcReady=true;}
     var r=await pcall(RC,'restorePurchases');passFromInfo(r&&r.customerInfo);
-    if(passActive()){closeSheet();toast(T('Your Interview Pass is back ✈️'));}else toast(T('No active Interview Pass found on this Google account.'));
+    if(passActive()){closeSheet();toast(T('Your Interview Pass is back ✈️'));}else toast(T('No active Interview Pass found on this '+STORE_ACCT+'.'));
   }catch(e){toast(T('Couldn’t check your purchases. Check your internet and try again.'));}
   passBusy=false;if(b&&b.isConnected)b.disabled=false;showLeft();
 }
@@ -1114,6 +1119,7 @@ $('btnFav').addEventListener('click',function(){
   if(!curKey)return;var on=!state.favs[curKey];if(on)state.favs[curKey]=1;else delete state.favs[curKey];save();favPaint();hap('light');
   toast(on?(Object.keys(state.favs).length===1?'Starred. Find it in the ☰ menu under Starred questions.':'Starred.'):'Star removed.');
 });
+$('btnNextTop').addEventListener('click',function(){$('btnNext').click();});
 $('btnNext').addEventListener('click',function(){hap('light');if(!tried)track('skipped',curQ());var last=order[pos];pos=(pos+1)%order.length;if(pos===0){order=shuffle(list().length);if(order.length>1&&order[0]===last){order.push(order.shift());}}showQ();window.scrollTo({top:0,behavior:'smooth'});});
 document.querySelectorAll('.sets button').forEach(function(b){
   b.addEventListener('click',function(){var s=b.getAttribute('data-set');if(s===state.set)return;state.set=s;save();newRound();});

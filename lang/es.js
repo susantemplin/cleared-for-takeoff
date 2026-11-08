@@ -661,11 +661,17 @@ strings: {
 "Your Interview Pass is back ✈️": "Tu Pase de Entrevista está de vuelta ✈️",
 "No active Interview Pass found on this Google account.": "No encontramos un Pase de Entrevista activo en esta cuenta de Google.",
 "Couldn’t check your purchases. Check your internet and try again.": "No pudimos revisar tus compras. Revisa tu internet e inténtalo de nuevo.",
+"You’ve used your free AI review.": "Ya usaste tu revisión gratis con IA.",
+"Keep practicing with the Interview Pass.": "Sigue practicando con el Pase de Entrevista.",
+"Paid through Google Play. Your first AI review is free.": "Se paga con Google Play. Tu primera revisión con IA es gratis.",
+"Paid through the App Store. Your first AI review is free.": "Se paga con el App Store. Tu primera revisión con IA es gratis.",
+"No active Interview Pass found on this Apple ID.": "No encontramos un Pase de Entrevista activo en este Apple ID.",
 },
 
 /* Text with numbers or names inside. Each line: [pattern of the English, function that builds the translation]. */
 patterns: [
   [/^(\d+) Interview Pass reviews? left$/, function(n){ return n === '1' ? 'Te queda 1 revisión del Pase' : 'Te quedan ' + n + ' revisiones del Pase'; }],
+  [/^(\d+) free AI reviews? left$/, function(n){ return n === '1' ? 'Te queda 1 revisión gratis con IA' : 'Te quedan ' + n + ' revisiones gratis con IA'; }],
   [/^(\d+) free AI reviews? left this week$/, function(n){ return n === '1' ? 'Te queda 1 revisión gratis con IA esta semana' : 'Te quedan ' + n + ' revisiones gratis con IA esta semana'; }],
   [/^(\d+) AI reviews? left$/, function(n){ return n === '1' ? 'Te queda 1 revisión con IA' : 'Te quedan ' + n + ' revisiones con IA'; }],
   [/^Ends (.+)$/, function(d){ return 'Termina el ' + d; }],
