@@ -123,6 +123,15 @@ button.pp:active{background:rgba(255,255,255,.18)}
 .strip .meta .mr{display:flex;align-items:center;gap:2px;margin-left:auto}
 .qod{font-size:calc(12.5px*var(--ui,1)*var(--tz,1));font-weight:700;padding:2px 9px;border-radius:999px;background:rgba(242,185,12,.2);color:var(--amber);white-space:nowrap}
 .qair{font-size:calc(12.5px*var(--ui,1)*var(--tz,1));font-weight:700;padding:2px 9px;border-radius:999px;background:var(--tint);color:var(--sky);white-space:nowrap}
+.todayplan{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;margin:0 0 12px;padding:10px 14px;border:1.5px solid var(--line);border-left:6px solid var(--sky);border-radius:var(--r);background:var(--card);color:var(--ink);text-align:left;font:inherit;font-size:calc(15px*var(--ui,1)*var(--tz,1));line-height:1.35;cursor:pointer}
+.todayplan b{font-family:"Barlow Condensed",sans-serif;font-size:calc(20px*var(--ui,1)*var(--tz,1));line-height:1.1}
+.wdate{display:block;margin:14px 0 4px;color:#fff;font-weight:600}.wdate small{display:block;font-weight:400;color:#C9D6E4}
+.wdate input{display:block;width:100%;margin-top:8px;padding:12px;border:0;border-radius:10px;font-size:calc(17px*var(--ui,1)*var(--tz,1));min-height:48px;background:#fff;color:#14304F}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.speak{display:inline-flex;align-items:center;gap:6px;flex:none;min-height:44px;padding:6px 12px;border:1.5px solid var(--line);border-radius:999px;background:var(--card);color:var(--sky);font:inherit;font-size:calc(14px*var(--ui,1)*var(--tz,1));font-weight:600;cursor:pointer}
+.speak svg{width:18px;height:18px}.speak.on{background:var(--sky);border-color:var(--sky);color:#fff}
+.story .speak{margin-top:8px}
+.passme{margin:0 0 10px;padding:10px 12px;border-radius:var(--rs);background:var(--tint);font-weight:600}
 .agree{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-weight:600;cursor:pointer}.agree input{width:24px;height:24px;min-width:24px;margin:1px 0 0;accent-color:var(--sky)}
 .qnext{background:var(--tint);border:0;border-radius:999px;width:44px;height:44px;min-width:44px;margin-left:6px;display:inline-flex;align-items:center;justify-content:center;color:var(--sky);padding:0;cursor:pointer}.qnext svg{width:22px;height:22px}
 .qpick{background:var(--tint);border:0;border-radius:999px;padding:6px 11px;font-size:calc(14px*var(--ui,1)*var(--tz,1));font-weight:600;color:var(--sky);min-height:36px}
@@ -459,6 +468,7 @@ html.native{--ui:.88}
   <!-- PRACTICE -->
   <section id="p-practice" role="tabpanel" aria-labelledby="t-practice">
    <div class="qcol">
+    <button type="button" class="todayplan" id="todayPlan" hidden></button>
     <div class="luck" id="luckBanner" role="region" aria-label="Your interview is tomorrow" hidden>
       <p><b>Your interview is tomorrow! ✈️</b>Make a wish-me-luck card to share with friends.</p>
       <div class="luckacts"><button type="button" class="btn btn-go" id="luckMake">Make my card</button><button type="button" class="luckx" id="luckX" aria-label="Not now">&times;</button></div>
@@ -846,7 +856,7 @@ var WAIT_TIPS=[
 /* ---------- storage (per viewer, on this device) ---------- */
 var KEY='cft_v1',state={role:'fa',set:'core',answered:0,stories:[],seen:{},ai:{day:'',used:0,server:-1},
   welcomed:false,drafts:{},history:{},days:[],interview:'',checks:{},rem:{on:false,time:'19:00'},good:0,revAt:'',
-  airline:'',favs:{},qod:'',luckSeen:'',cardName:'',billing:false,aiOk:'',wk:{week:'',used:0},free:{used:0},pass:{start:'',used:0}};
+  airline:'',favs:{},qod:'',luckSeen:'',cardName:'',billing:false,aiOk:'',hintSeen:false,wk:{week:'',used:0},free:{used:0},pass:{start:'',used:0}};
 function obj(o){return o&&typeof o==='object'&&!Array.isArray(o)?o:{};}
 function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&typeof o==='object'){
   state.role=ROLES[o.role]?o.role:'fa';state.set=SETS[o.set]?o.set:'core';state.answered=+o.answered||0;
@@ -864,7 +874,7 @@ function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if
   state.billing=o.billing===true;var wk=obj(o.wk),ps=obj(o.pass);
   state.wk={week:/^\d{4}-\d\d-\d\d$/.test(wk.week||'')?wk.week:'',used:Math.max(0,+wk.used||0)};
   state.free={used:Math.max(0,+obj(o.free).used||0)};
-  state.aiOk=o.aiOk==='yes'||o.aiOk==='no'?o.aiOk:'';
+  state.aiOk=o.aiOk==='yes'||o.aiOk==='no'?o.aiOk:'';state.hintSeen=o.hintSeen===true;
   state.pass={start:isNaN(Date.parse(ps.start))?'':String(ps.start),used:Math.max(0,+ps.used||0)};
 }}}catch(e){}
   var needSave=false;
@@ -919,7 +929,7 @@ function stats(){
   var al=airline();
   $('jobChip').innerHTML=esc(T(ROLE_SHORT[state.role]))+(al?' · '+esc(al.name):'')+' &#9662;';
   $('jobChip').setAttribute('aria-label',T('Job: '+ROLES[state.role]+'. Tap to change.')+(al?' '+T('Airline: '+al.name+'.'):''));
-  luckBanner();fixPad();
+  luckBanner();renderPlan();fixPad();
 }
 function fixPad(){var t=document.querySelector('.top');if(!t)return;
   /* with very large text the header can get tall; then it scrolls away instead of covering the screen */
@@ -966,14 +976,14 @@ function reviewsLeft(){
 }
 function noteServer(d){if(d&&typeof d.remaining==='number'&&d.remaining>=0){state.ai.server=d.remaining;save();}}
 function showLeft(){
-  var el=$('leftNote'),pl=$('passLink');
+  var el=$('leftNote'),pl=$('passLink');fbLabel();
   if(billingOn()){var n=planLeft(),pa=passActive();
     el.textContent=pa?(n===0?'You’ve used all 50 Interview Pass reviews.':n+' Interview Pass review'+(n===1?'':'s')+' left')
-      :(n===0?'You’ve used your free AI review.':n+' free AI review'+(n===1?'':'s')+' left');
+      :(n===0?'You’ve used your free AI review. Quick checks are always free.':n+' free AI review'+(n===1?'':'s')+' left');
     if(pl){pl.hidden=pa&&n>0;pl.textContent=T(pa?'Interview Pass':(n===0?'Get 50 more with the Interview Pass':'Interview Pass'));}
     return;}
   if(pl)pl.hidden=true;
-  var m=reviewsLeft();el.textContent=m===0?'No AI reviews left today. They reset at midnight Arizona time.':m+' AI review'+(m===1?'':'s')+' left today';}
+  var m=reviewsLeft();if(PLATFORM==='ios'&&m>0){el.textContent='';return;}el.textContent=m===0?'No AI reviews left today. They reset at midnight Arizona time.':m+' AI review'+(m===1?'':'s')+' left today';}
 
 /* ---------- AI consent (Apple rule 5.1.2(i)) ----------
    Before the first answer goes to the AI, say plainly what is sent and to whom, and ask. The box starts unticked.
@@ -996,9 +1006,9 @@ function openConsent(go,fromDeck){
     +'<p class="small" style="margin-top:10px">'+esc(T('You can change this anytime in the Flight Deck under Settings.'))+' <a href="privacy.html">'+esc(T('Privacy Policy'))+'</a></p>';
   openSheet(T('Before your first feedback'),h,function(e){
     var b=e.target.closest('[data-act]');if(!b)return;var a=b.getAttribute('data-act');
-    if(a==='aiyes'){if(!$('aiAgree').checked)return;state.aiOk='yes';save();hap('success');closeSheet();
+    if(a==='aiyes'){if(!$('aiAgree').checked)return;state.aiOk='yes';save();showLeft();hap('success');closeSheet();
       if(fromDeck)openDeck();else{toast(T('Thanks! Getting your feedback now.'));if(go)setTimeout(go,250);}}
-    else if(a==='ainot'){state.aiOk='no';save();closeSheet();if(fromDeck)openDeck();else toast(T('No problem. You can still practice, and turn AI feedback on later in the Flight Deck.'));}
+    else if(a==='ainot'){state.aiOk='no';save();showLeft();closeSheet();if(fromDeck)openDeck();else toast(T('No problem. You can still practice, and turn AI feedback on later in the Flight Deck.'));}
   });
   var cb=$('aiAgree'),yes=$('sheetBody').querySelector('[data-act="aiyes"]');
   cb.addEventListener('change',function(){yes.disabled=!cb.checked;});
@@ -1050,6 +1060,12 @@ async function billingInit(){
   }catch(e){}
   showLeft();
 }
+/* the Pass sheet speaks to this person: what they've practiced and how long until the interview */
+function passMe(){var hk=histKeys(),dd=daysToGo(),out=[];
+  if(hk.length){var sum=0;hk.forEach(function(k){var h=state.history[k];sum+=(h[h.length-1]||{}).score||0;});
+    out.push('You’ve practiced '+hk.length+' question'+(hk.length===1?'':'s')+' so far, with a latest average of '+(Math.round(sum/hk.length*10)/10)+' of 5.');}
+  if(dd!==null&&dd>0)out.push('Your interview is in '+dd+' day'+(dd===1?'':'s')+', and the Pass covers the next 30.');
+  return out.length?'<p class="passme">'+out.map(function(x){return '<span>'+esc(T(x))+'</span>';}).join(' ')+'</p>':'';}
 function passPrice(){return (passPkg&&passPkg.product&&passPkg.product.priceString)||'$14.99';}
 function passCancelled(e){return !!e&&(String(e.code)==='1'||!!(e.data&&e.data.userCancelled)||/cancel/i.test(String(e.message||'')));}
 function openPass(why){
@@ -1061,6 +1077,7 @@ function openPass(why){
       +(left===0?'<p>'+esc(T('You’ve used all 50. You can buy a new Pass now and get 50 more for the next 30 days.'))+'</p>':'');
   }else{
     h=(why==='out'?'<p class="passnow"><b>'+esc(T('You’ve used your free AI review.'))+'</b> '+esc(T('Keep practicing with the Interview Pass.'))+'</p>':'')
+      +passMe()
       +'<p>'+esc(T('Practicing every day before your interview? The Interview Pass gives you:'))+'</p>'
       +'<ul class="passlist"><li>'+esc(T('50 AI reviews to use over 30 days'))+'</li><li>'+esc(T('Feedback on every answer and story polishing'))+'</li><li>'+esc(T('One payment. It doesn’t renew, so nothing to cancel.'))+'</li></ul>';
   }
@@ -1108,7 +1125,7 @@ function curQ(){return list()[order[pos]];}
 function qKey(q){return state.set+':'+q[1];}
 function showQ(){
   /* save whatever is in the box (typed or dictated) for the question we're leaving */
-  clearTimeout(draftT);stopMic(true);if(curKey)saveDraft();
+  clearTimeout(draftT);stopMic(true);ttsStop();if(curKey)saveDraft();
   fbToken++; /* any feedback still on its way belongs to the old question */
   var q=curQ();$('qKind').textContent=KIND_LABEL[q[0]]||q[0];$('qText').textContent=q[1];$('qTip').textContent=q[2];
   $('qHelp').textContent=HELP[q[0]]||HELP.Behavioral;
@@ -1175,9 +1192,18 @@ function saveDraft(){if(!curKey)return;var k=curKey,v=$('answer').value;
   var ks=Object.keys(state.drafts);if(ks.length>60)delete state.drafts[ks[0]];
   save();draftMsg(v,'Draft saved.');}
 /* About 150 spoken words a minute, so 300+ words runs past the 2-minute sweet spot */
+/* A calm length line instead of a timer (Susan, Nov 8): estimated from the words, never a ticking clock. */
+function spokenLen(w){var sec=w/150*60;
+  if(sec<55)return ['About '+Math.max(10,Math.round(sec/10)*10)+' seconds out loud.','The sweet spot is 1 to 2 minutes.'];
+  if(sec<75)return ['About 1 minute out loud.','Right in the sweet spot.'];
+  if(sec<105)return ['About a minute and a half out loud.','Right in the sweet spot.'];
+  if(sec<=130)return ['About 2 minutes out loud.','Right in the sweet spot.'];
+  return ['A little over 2 minutes out loud.','Try trimming the setup.'];}
 function draftMsg(v,base){var n=$('draftNote'),w=(v||'').trim().split(/\s+/).filter(Boolean).length;
-  if(w>300){n.textContent='This would take over 2 minutes to say. Try trimming the setup.';n.classList.add('longnote');}
-  else{n.textContent=(v||'').trim()?base:'';n.classList.remove('longnote');}}
+  if(!(v||'').trim()){n.textContent='';n.classList.remove('longnote');return;}
+  var parts=[base];if(w>=25)parts=parts.concat(spokenLen(w));
+  n.innerHTML=parts.map(function(x){return '<span>'+esc(T(x))+'</span>';}).join(' ');
+  n.classList.toggle('longnote',w/150*60>130);}
 $('answer').addEventListener('input',function(){if(listening){stopMic(true);toast('Voice typing paused so you can type.');}clearTimeout(draftT);draftT=setTimeout(saveDraft,400);});
 
 /* hide the bottom bar only while a phone's on-screen keyboard is open (not on a laptop or Chromebook) */
@@ -1460,7 +1486,7 @@ function renderAI(d,prev,hist){
   if(d.worked&&d.worked.length)h+='<h3>What worked</h3><ul>'+d.worked.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
   if(d.improve&&d.improve.length)h+='<h3>Make it stronger</h3><ul>'+d.improve.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
   if(d.stronger){var notes=hasFill(d.stronger)?STRONGER_NOTE:STRONGER_NOTE_PLAIN;
-    h+='<h3>A stronger version</h3><div class="better">'+fillHTML(d.stronger)+'</div>';
+    h+='<h3 class="hrow">A stronger version'+speakBtn('data-act="speak"')+'</h3><div class="better">'+fillHTML(d.stronger)+'</div>';
     if(d.changes&&d.changes.length)h+='<p class="small" style="margin-top:8px"><b>Why it’s stronger</b></p><ul class="whyb">'+d.changes.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
     h+='<p class="small">'+(notes[d.mode]||notes.story)+'</p>';}
   h+='<div class="fbacts"><button class="btn btn-go" data-act="retry">Edit and try again</button>'+(d.stronger?'<button class="btn btn-plain" data-act="savestronger">Save to My stories</button>':'')
@@ -1470,7 +1496,14 @@ function renderAI(d,prev,hist){
 }
 function renderLocal(t,why,mode){
   var st=starGuess(t),words=t.trim().split(/\s+/).filter(Boolean).length,notes=[];
-  var intro=why==='daily'?DAILY_MSG+' Here’s a quick check in the meantime.':(why==='offline'?'You’re offline right now, and your answer is saved. Here’s a quick check. When you’re back online, tap Get feedback for the full AI review.':'Live AI feedback couldn’t be reached just now, so this is a quick check. Try again in a minute for a full review.');
+  var INTRO={daily:DAILY_MSG+' Here’s a quick check in the meantime.',
+    offline:'You’re offline right now, and your answer is saved. Here’s a quick check. When you’re back online, tap Get feedback for the full AI review.',
+    free:'Here’s your free quick check, done right on your phone. The Interview Pass adds the full AI review: a score, coaching on your exact words, and a stronger version of your answer.',
+    passout:'You’ve used all 50 Interview Pass reviews, so here’s a free quick check. A new Pass gives you 50 more.',
+    aioff:'AI feedback is off, so here’s a free quick check done on your phone. Nothing was sent anywhere.'};
+  var intro=INTRO[why]||'Live AI feedback couldn’t be reached just now, so this is a quick check. Try again in a minute for a full review.';
+  var more=(why==='free'||why==='passout')?'<button type="button" class="btn btn-go" style="width:100%;margin-top:14px" data-act="getpass">'+esc(T('Get the full AI review'))+'</button>'
+    :(why==='aioff'?'<button type="button" class="btn btn-plain" style="width:100%;margin-top:14px" data-act="aion">'+esc(T('Turn on AI feedback'))+'</button>':'');
   if(mode==='motivation'||mode==='know'){
     if(words<40)notes.push('This is short. Aim for about one minute out loud.');
     if(words>300)notes.push('This is long. Keep it to about one minute out loud.');
@@ -1483,7 +1516,7 @@ function renderLocal(t,why,mode){
       notes.push('Mention safety wherever it matters.');
       notes.push('Say how you’d talk to the person, and when you’d bring in a lead or supervisor.');
     }
-    return '<div class="score"><b>Quick check</b></div><p class="small" style="margin-top:4px">'+intro+'</p><h3>Make it stronger</h3><ul>'+notes.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
+    return '<div class="score"><b>Quick check</b></div><p class="small" style="margin-top:4px">'+intro+'</p><h3>Make it stronger</h3><ul>'+notes.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>'+more;
   }
   if(words<60)notes.push('This is short. Most strong answers run about 150 to 300 words, or one to two minutes out loud.');
   if(words>380)notes.push('This is long. Trim the setup and spend your time on what you did.');
@@ -1492,7 +1525,7 @@ function renderLocal(t,why,mode){
   if(!st.action)notes.push('Say exactly what you did, using "I." Interviewers want your actions, not the team’s.');
   if(!st.result)notes.push('Finish with how it turned out. A number or a customer’s reaction makes it stick.');
   if(!notes.length)notes.push('Nice structure. Read it out loud once and time yourself.');
-  return '<div class="score"><b>Quick check</b></div><p class="small" style="margin-top:4px">'+intro+'</p>'+starRow(st,true)+'<h3>Make it stronger</h3><ul>'+notes.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
+  return '<div class="score"><b>Quick check</b></div><p class="small" style="margin-top:4px">'+intro+'</p>'+starRow(st,true)+'<h3>Make it stronger</h3><ul>'+notes.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>'+more;
 }
 function cleanFeedback(d,mode){
   if(!d||typeof d!=='object')return null;
@@ -1517,8 +1550,9 @@ $('btnFeedback').addEventListener('click',async function(){
   var t=$('answer').value.trim(),q=curQ(),btn=this,why='',mode=modeFor(q[0]),k=qKey(q);
   $('fbError').hidden=true;
   if(t.split(/\s+/).filter(Boolean).length<8){$('fbError').textContent='Write at least a few sentences first, the way you’d answer out loud.';$('fbError').hidden=false;return;}
+  if(AI_CONSENT&&state.aiOk==='no'){quickCheck(t,mode,k,'aioff');return;}
   if(!aiConsent(function(){$('btnFeedback').click();}))return;
-  if(billingOn()&&planLeft()<=0){openPass('out');return;}
+  if(billingOn()&&planLeft()<=0){quickCheck(t,mode,k,passActive()?'passout':'free');return;}
   busyTok=fbToken;btn.disabled=true;tried=true;$('feedback').hidden=true;hap('light');
   var my=fbToken,html=null,perfect=false,errMsg='',sc=0,offline=navigator.onLine===false;
   if(!offline)startWait();
@@ -1553,6 +1587,9 @@ $('btnFeedback').addEventListener('click',async function(){
 });
 $('feedback').addEventListener('click',function(e){
   var b=e.target.closest('[data-act]');if(!b)return;var act=b.getAttribute('data-act');
+  if(act==='getpass'){openPass(planLeft()<=0?'out':'');return;}
+  if(act==='aion'){openConsent(function(){$('btnFeedback').click();});return;}
+  if(act==='speak'){var bt=$('feedback').querySelector('.better');if(bt)speak(bt.textContent,b);return;}
   if(act==='retry'){var a=$('answer');a.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){a.focus();},350);}
   if(act==='savestronger'&&lastStronger){
     var tps=(lastStronger.set==='core'&&lastStronger.kind==='Behavioral')?typesForQuestion(lastStronger.q):[];
@@ -1560,6 +1597,36 @@ $('feedback').addEventListener('click',function(e){
     save();stats();renderStories();renderMusts();b.disabled=true;b.textContent='Saved ✓';
     toast(hasFill(lastStronger.text)?'Saved to My stories. Fill in the [highlighted] spots with what really happened.':'Saved to My stories.');}
 });
+
+/* ---------- hear it read aloud (built-in phone voices; the button only shows when a voice exists) ---------- */
+var TTS=(typeof window.speechSynthesis!=='undefined'&&typeof window.SpeechSynthesisUtterance!=='undefined')?window.speechSynthesis:null,ttsBtn=null;
+function ttsVoice(){if(!TTS)return null;var v=[];try{v=TTS.getVoices()||[];}catch(e){}var L=String(I18N.speech||'en-US').toLowerCase(),base=L.slice(0,2);
+  var norm=function(x){return String(x.lang||'').toLowerCase().replace('_','-');};
+  return v.filter(function(x){return norm(x)===L;})[0]||v.filter(function(x){return norm(x).indexOf(base)===0;})[0]||null;}
+function speakBtn(attr){return ttsVoice()?'<button type="button" class="speak" '+attr+' aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><span>Hear it</span></button>':'';}
+function ttsOff(){if(ttsBtn){ttsBtn.classList.remove('on');ttsBtn.setAttribute('aria-pressed','false');var sp=ttsBtn.querySelector('span');if(sp)sp.textContent=T('Hear it');}ttsBtn=null;}
+function ttsStop(){if(TTS){try{TTS.cancel();}catch(e){}}ttsOff();}
+function speak(text,btn){
+  if(!TTS)return;var again=btn&&btn===ttsBtn;ttsStop();if(again)return;
+  var v=ttsVoice();if(!v||!text)return;
+  var u=new SpeechSynthesisUtterance(String(text).replace(/\[([^\]]+)\]/g,'$1'));u.voice=v;u.lang=v.lang;u.rate=0.95;
+  u.onend=u.onerror=function(){if(ttsBtn===btn)ttsOff();};
+  ttsBtn=btn;if(btn){btn.classList.add('on');btn.setAttribute('aria-pressed','true');var sp=btn.querySelector('span');if(sp)sp.textContent=T('Stop');}
+  try{TTS.speak(u);}catch(e){ttsOff();}
+}
+if(TTS){try{TTS.getVoices();var vc=function(){renderStories();};if(TTS.addEventListener)TTS.addEventListener('voiceschanged',vc);else TTS.onvoiceschanged=vc;}catch(e){}}
+
+/* Free quick check, done on the phone (nothing is sent): after the one free AI review, when the Pass's
+   50 are used, or when AI feedback is switched off. Free users keep practicing, and see what the full review adds. */
+function quickCheck(t,mode,k,why){
+  if(!state.seen[k]){state.seen[k]=1;state.answered++;}
+  markDay();save();stats();showLeft();endWait();
+  $('feedback').innerHTML=renderLocal(t,why,mode);$('feedback').hidden=false;
+  $('feedback').scrollIntoView({behavior:'smooth',block:'start'});hap('light');
+}
+function fbLabel(){var b=$('btnFeedback');if(!b)return;
+  var quick=(AI_CONSENT&&state.aiOk==='no')||(billingOn()&&planLeft()<=0);
+  var want=T(quick?'Quick check (free)':'Get feedback');if(b.textContent!==want)b.textContent=want;}
 
 /* ---------- confetti for a 5 of 5 ---------- */
 function confetti(){
@@ -1767,6 +1834,15 @@ async function shareCard(btn){
   }finally{cardBusy=false;btn.disabled=false;}
 }
 /* The day before the interview: one small, dismissible offer on the Practice screen */
+/* Today's plan, at the top of Practice once there's an interview date (2+ days away). Tap it for the countdown. */
+function renderPlan(){var el=$('todayPlan');if(!el)return;var d=daysToGo();
+  if(d===null||d<2||!state.welcomed){el.hidden=true;return;}
+  var left=SHARED.length-coreDone(),msg;
+  if(d<=3)msg='Final stretch: say your stories out loud and go through the interview-day checklist.';
+  else if(left<=0)msg='Today: say 2 of your stories out loud.';
+  else{var per=Math.min(5,Math.max(1,Math.ceil(left/(d-1))));msg='Today: '+per+' new question'+(per===1?'':'s')+' and 1 story out loud.';}
+  el.innerHTML='<b>'+esc(T(d+' days to go'))+'</b><span>'+esc(T(msg))+'</span>';el.hidden=false;}
+$('todayPlan').addEventListener('click',function(){openCountdown(false);});
 function luckBanner(){
   var el=$('luckBanner');if(!el)return;var d=daysToGo();
   var show=d===1&&state.luckSeen!==state.interview&&!!state.welcomed;
@@ -1798,7 +1874,7 @@ function renderStories(){
     return '<div class="story"><h3>'+esc(s.title||'Untitled story')+'</h3>'
       +(s.types&&s.types.length?'<div class="tags">'+s.types.map(function(t){return '<span>'+esc(typeName(t))+'</span>';}).join('')+'</div>':'')
       +part('The problem',s.s)+part('What was at stake',s.t)+part('What I did',s.a)+part('How it ended',s.r)
-      +(s.polished?'<div class="polished">'+fillHTML(s.polished)+'</div>'+(hasFill(s.polished)?'<p class="small">Tap Edit to fill in the [highlighted] spots.</p>':''):'')
+      +(s.polished?'<div class="polished">'+fillHTML(s.polished)+'</div>'+speakBtn('data-speakstory="'+i+'"')+(hasFill(s.polished)?'<p class="small">Tap Edit to fill in the [highlighted] spots.</p>':''):'')
       +fitH
       +'<div>'+(hasParts?'<button class="linkbtn" data-polish="'+i+'">'+(s.polished?'Polish again':'Turn into a spoken answer')+'</button>':'')
       +'<button class="linkbtn" data-edit="'+i+'">Edit</button><button class="linkbtn danger" data-del="'+i+'">Delete</button></div>'
@@ -1821,6 +1897,7 @@ $('btnSaveStory').addEventListener('click',function(){
 });
 $('storyList').addEventListener('click',async function(e){
   var b=e.target.closest('button');if(!b)return;
+  if(b.hasAttribute('data-speakstory')){var sx=state.stories[+b.getAttribute('data-speakstory')];if(sx)speak(storyText(sx),b);return;}
   if(b.hasAttribute('data-practice')){var s=state.stories[+b.getAttribute('data-sid')],qi=+b.getAttribute('data-practice');
     state.set='core';save();showSet();showTab('practice');jumpTo(qi);
     if(!$('answer').value.trim())insertStory(s);else toast('Your draft for this question is still here. Tap "Use my story" to add your story.');
@@ -2183,7 +2260,7 @@ function deckClick(e){
   else if(a==='countdown')openCountdown(true);
   else if(a==='job')openJob();
   else if(a==='pass')openPass();
-  else if(a==='aiswitch'){hap('light');if(state.aiOk==='yes'){state.aiOk='no';save();b.setAttribute('aria-checked','false');toast(T('AI feedback is off. Turn it back on here any time.'));}else openConsent(null,true);}
+  else if(a==='aiswitch'){hap('light');if(state.aiOk==='yes'){state.aiOk='no';save();showLeft();b.setAttribute('aria-checked','false');toast(T('AI feedback is off. Turn it back on here any time.'));}else openConsent(null,true);}
   else if(a==='hired')openCard('hired',true);
   else if(a==='luck')openCard('luck',true);
 }
@@ -2271,7 +2348,8 @@ function renderWelcome(){
     +'<div class="parts"><div><b>'+(VOICE?'Tap to talk:':'Talk it out:')+'</b> say it like you would in the room</div><div><b>Feedback:</b> a score, what worked, and how to make it stronger</div></div>'+dots(1)
     +'<button class="wgo" data-w="next">Next</button><button class="wskip" data-w="skip">Skip</button>';
   else w.innerHTML='<h2>One good story, many questions</h2><p>Build a few stories in My stories. Every great story has 3 parts:</p>'
-    +'<div class="parts"><div><b>1. The problem</b></div><div><b>2. What I did</b></div><div><b>3. How it ended</b></div></div><p>Then bend each one to fit whatever they ask.</p>'+dots(2)
+    +'<div class="parts"><div><b>1. The problem</b></div><div><b>2. What I did</b></div><div><b>3. How it ended</b></div></div><p>Then bend each one to fit whatever they ask.</p>'
+    +'<label class="wdate" for="wDate"><span>When’s your interview? <small>Optional. We’ll make you a daily plan.</small></span><input type="date" id="wDate" min="'+localDay()+'"></label>'+dots(2)
     +'<button class="wgo" data-w="done">Let’s go</button>'+(LN?'<button class="wskip" data-w="remind">🔔 Remind me to practice every day</button>':'');
   w.classList.remove('enter');void w.offsetWidth;w.classList.add('enter');
   w.setAttribute('tabindex','-1');w.focus({preventScroll:true});
@@ -2280,7 +2358,10 @@ $('wbox').addEventListener('click',function(e){
   var r=e.target.closest('[data-role]');if(r){setRole(r.getAttribute('data-role'));wStep=1;renderWelcome();return;}
   var b=e.target.closest('[data-w]');if(!b)return;var a=b.getAttribute('data-w');
   if(a==='next'){wStep=2;renderWelcome();return;}
-  state.welcomed=true;save();$('welcome').hidden=true;document.documentElement.classList.remove('first');luckBanner();
+  var wd=$('wDate');if(wd&&/^\d{4}-\d\d-\d\d$/.test(wd.value)&&wd.value>=localDay())state.interview=wd.value;
+  state.welcomed=true;save();$('welcome').hidden=true;document.documentElement.classList.remove('first');luckBanner();stats();remindersRefresh();
+  /* the very first question opens with its hint showing, so a new user sees what interviewers want */
+  var hd=document.querySelector('.hint');if(hd&&!state.hintSeen){hd.open=true;state.hintSeen=true;save();}
   /* first visit: a soft glow on the answer box shows where to start */
   var ans=$('answer');ans.classList.add('firsthint');var off=function(){ans.classList.remove('firsthint');};ans.addEventListener('focus',off,{once:true});setTimeout(off,6000);
   if(a==='remind')setReminders(true);
