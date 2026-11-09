@@ -1030,8 +1030,8 @@ function aiSwitchHTML(){
    works exactly as before (free AI reviews with the server's daily limit).
    Once it's for sale (Susan, Nov 4): free = ONE AI review in total, to try it;
    the Pass = $14.99 one time, 50 AI reviews over 30 days, doesn't renew (buy it again any time after).
-   iPhone: paste RevenueCat's public Apple key ('appl_...') into RC_KEYS.ios once the Pass is set up in App Store Connect. */
-var RC_KEYS={android:'goog_AuKoVBsjjdzhCJKolzaNrOiWiJJ',ios:''}; /* RevenueCat's public app keys: made to ship inside the app, they can only show and sell products */
+   iPhone: RevenueCat's public Apple key (added Nov 9, 2026, after the Pass was set up in App Store Connect). */
+var RC_KEYS={android:'goog_AuKoVBsjjdzhCJKolzaNrOiWiJJ',ios:'appl_QsAHdkEHUDNnwImyWGKgxVEpnGb'}; /* RevenueCat's public app keys: made to ship inside the app, they can only show and sell products */
 var RC_KEY=RC_KEYS[PLATFORM]||'';
 var PASS_PRODUCT='interview_pass_30',PASS_DAYS=30,PASS_REVIEWS=50,FREE_TOTAL=1;
 var RC=RC_KEY?plug('Purchases'):null,passPkg=null,passBusy=false,rcReady=false;
@@ -1047,7 +1047,7 @@ function planLeft(){
 }
 function countPlan(){if(!billingOn())return;
   if(passActive())state.pass.used++;else state.free.used++;}
-/* The newest Pass purchase on this Google account decides the 30 days. A new purchase starts a fresh 50. */
+/* The newest Pass purchase on this Google account / Apple ID decides the 30 days. A new purchase starts a fresh 50. */
 function passFromInfo(ci){
   var tx=((ci&&ci.nonSubscriptionTransactions)||[]).filter(function(t){return t&&String(t.productIdentifier||'').indexOf(PASS_PRODUCT)===0&&t.purchaseDate;})
     .sort(function(a,b){return Date.parse(b.purchaseDate)-Date.parse(a.purchaseDate);})[0];
