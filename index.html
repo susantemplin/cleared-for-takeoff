@@ -1621,7 +1621,7 @@ function ttsVoice(){if(!TTS)return null;var v=[];try{v=TTS.getVoices()||[];}catc
   return bs>=0?best:null;}
 /* iPhone: speak with Apple's own engine (app/ios-native/TakeoffSpeechPlugin.swift), which can use the
    Premium and Enhanced voices the web voices can't reach. Falls back to web speech if it's missing. */
-var NSPEECH=null,nspeechOk=true,ttsInfo='';
+var NSPEECH=null,nspeechOk=true,nspeechWhy='',ttsInfo='';
 try{ttsInfo=localStorage.getItem('cft-tts')||'';}catch(e){}
 function noteTts(t){ttsInfo=t;try{localStorage.setItem('cft-tts',t);}catch(e){}}
 if(NATIVE&&PLATFORM==='ios'&&typeof CAP.registerPlugin==='function'){try{NSPEECH=CAP.registerPlugin('TakeoffSpeech');}catch(e){NSPEECH=null;}}
@@ -1633,8 +1633,10 @@ function ttsOn(btn){ttsBtn=btn;if(btn){btn.classList.add('on');btn.setAttribute(
 function webSpeak(say,btn){
   var v=ttsVoice();if(!TTS||!v){ttsOff();return;}
   var u=new SpeechSynthesisUtterance(say);u.voice=v;u.lang=v.lang;u.rate=0.9;u.pitch=1;
+  var began=false;u.onstart=function(){began=true;};
   u.onend=u.onerror=function(){if(ttsBtn===btn)ttsOff();};
-  ttsOn(btn);noteTts((NSPEECH?'Apple voice failed, web voice: ':'Web voice: ')+v.name);try{TTS.speak(u);}catch(e){ttsOff();}
+  setTimeout(function(){if(!began&&ttsBtn===btn){ttsOff();noteTts(ttsInfo+' (web voice did not start)');}},3000);
+  ttsOn(btn);noteTts((NSPEECH?'Apple voice failed ('+nspeechWhy+'), web voice: ':'Web voice: ')+v.name+' ['+(TTS.getVoices?TTS.getVoices().length:0)+' voices]');try{TTS.speak(u);}catch(e){ttsOff();}
 }
 function speak(text,btn){
   var again=btn&&btn===ttsBtn;ttsStop();if(again||!text)return;
@@ -1642,7 +1644,7 @@ function speak(text,btn){
   if(NSPEECH&&nspeechOk){
     ttsOn(btn);
     var p;try{p=NSPEECH.speak({text:say,lang:String(I18N.speech||'en-US'),rate:0.9});}catch(e){p=Promise.reject(e);}
-    p.then(function(r){if(r&&r.voice)noteTts('Apple voice: '+r.voice+' ('+r.quality+')'+(r.retried?', retried with normal voice':''));if(ttsBtn===btn)ttsOff();},function(){nspeechOk=false;if(ttsBtn===btn){ttsOff();webSpeak(say,btn);}});
+    p.then(function(r){if(r&&r.voice)noteTts('Apple voice: '+r.voice+' ('+r.quality+')'+(r.retried?', retried with normal voice':'')+(r.detail?' ['+r.detail+']':''));if(ttsBtn===btn)ttsOff();},function(e){nspeechOk=false;nspeechWhy=String((e&&e.message)||e||'').slice(0,160);if(ttsBtn===btn){ttsOff();webSpeak(say,btn);}});
     return;
   }
   webSpeak(say,btn);

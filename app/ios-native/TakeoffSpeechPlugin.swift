@@ -28,9 +28,17 @@ public class TakeoffSpeechPlugin: CAPPlugin, CAPBridgedPlugin, AVSpeechSynthesiz
     private var lang = "en-US"
     private var rate: Float = 0.9
     private var usedVoice: AVSpeechSynthesisVoice?
+    private var gotStart = false
+    private var gotWords = false
+    private var notes: [String] = []
+
+    private func note(_ v: AVSpeechSynthesisVoice?) {
+        notes.append("\(v?.name ?? "no voice")(\(qualityName(v))) start:\(gotStart ? "yes" : "no") words:\(gotWords ? "yes" : "no")")
+    }
 
     override public func load() {
         synth.delegate = self
+        synth.usesApplicationAudioSession = false
     }
 
     private func score(_ v: AVSpeechSynthesisVoice, _ lang: String) -> Int {
@@ -86,7 +94,7 @@ public class TakeoffSpeechPlugin: CAPPlugin, CAPBridgedPlugin, AVSpeechSynthesiz
         DispatchQueue.main.async {
             self.cancelCurrent()
             guard !t.isEmpty else { call.resolve(); return }
-            self.text = t; self.lang = l; self.rate = r
+            self.text = t; self.lang = l; self.rate = r; self.notes = []
             self.pending = call
             self.attempt = 0
             self.start(self.bestVoice(l))
@@ -95,9 +103,10 @@ public class TakeoffSpeechPlugin: CAPPlugin, CAPBridgedPlugin, AVSpeechSynthesiz
 
     private func start(_ v: AVSpeechSynthesisVoice?) {
         synth.delegate = self
-        let session = AVAudioSession.sharedInstance()
-        try? session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
-        try? session.setActive(true)
+        // Speak on Apple's own system audio channel, not the app's: the web view also uses the app's
+        // channel, and changing it (build 111-115) left both Apple's voice and the web voice silent.
+        synth.usesApplicationAudioSession = false
+        gotStart = false; gotWords = false
         let u = AVSpeechUtterance(string: text)
         u.voice = v
         u.rate = max(AVSpeechUtteranceMinimumSpeechRate, min(AVSpeechUtteranceMaximumSpeechRate, AVSpeechUtteranceDefaultSpeechRate * rate))
@@ -108,17 +117,18 @@ public class TakeoffSpeechPlugin: CAPPlugin, CAPBridgedPlugin, AVSpeechSynthesiz
         token += 1
         let mine = token
         synth.speak(u)
-        // safety net: no words actually spoken within 2 seconds (Apple reports each word as it's said)
+        // safety net: Apple hasn't started speaking within 2 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
             guard let self = self, self.token == mine, !self.started, self.pending != nil else { return }
             self.token += 1
             self.synth.stopSpeaking(at: .immediate)
+            self.note(self.usedVoice)
             if self.attempt == 0 {
                 self.attempt = 1
                 self.start(self.plainVoice(self.lang))
             } else {
                 let c = self.pending; self.pending = nil
-                c?.reject("Speech did not start", "SILENT")
+                c?.reject("silent: " + self.notes.joined(separator: "; "), "SILENT")
             }
         }
     }
@@ -139,11 +149,16 @@ public class TakeoffSpeechPlugin: CAPPlugin, CAPBridgedPlugin, AVSpeechSynthesiz
     private func done() {
         guard let c = pending else { return }
         pending = nil
-        c.resolve(["voice": usedVoice?.name ?? "", "quality": qualityName(usedVoice), "retried": attempt > 0])
+        c.resolve(["voice": usedVoice?.name ?? "", "quality": qualityName(usedVoice), "retried": attempt > 0,
+                   "detail": "start:\(gotStart ? "yes" : "no") words:\(gotWords ? "yes" : "no")"])
+    }
+
+    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+        DispatchQueue.main.async { self.gotStart = true; self.started = true }
     }
 
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance: AVSpeechUtterance) {
-        DispatchQueue.main.async { self.started = true }
+        DispatchQueue.main.async { self.gotWords = true; self.started = true }
     }
 
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
