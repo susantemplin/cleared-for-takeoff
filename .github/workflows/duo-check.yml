@@ -58,45 +58,9 @@ jobs:
           xcrun simctl install "$U" "$APP"
           xcrun simctl launch --console-pty "$U" com.clearedfortakeoff.app > app-console.log 2>&1 &
           sleep 25; kill %1 2>/dev/null || true
-          echo "== Capacitor log lines =="; grep -iE "⚡️|capacitor|Takeoff|plugin|Unknown class|storyboard" app-console.log | head -60
+          echo "== Capacitor log lines =="; grep -iE "⚡️|capacitor|Takeoff|plugin|Unknown class|storyboard|error" app-console.log | head -80
           mkdir -p ../duo-check; cp app-console.log ../duo-check/plain-iphone-console.log
           xcrun simctl io "$U" screenshot ../duo-check/plain-iphone.png || true
-      - name: Open on the iPhone Duo simulator and take pictures
-        run: |
-          mkdir -p ../duo-check
-          echo "== Device types with Duo / fold in the name =="
-          xcrun simctl list devicetypes | grep -iE "duo|fold" || true
-          echo "== Runtimes =="
-          xcrun simctl list runtimes
-          DT=$(xcrun simctl list devicetypes | grep -iE "duo" | head -1 | sed -E 's/.*\((com\.apple[^)]*)\).*/\1/')
-          if [ -z "$DT" ]; then echo "::error::No iPhone Duo simulator in this Xcode"; xcrun simctl list devicetypes; exit 1; fi
-          U=""
-          for RT in $(xcrun simctl list runtimes | grep -i "^iOS 27" | sed -E 's/.* - (com\.apple[^ ]*).*/\1/' | sort -r); do
-            U=$(xcrun simctl create "Duo check" "$DT" "$RT" 2>/dev/null) && { echo "Device type: $DT  Runtime: $RT"; break; } || U=""
-          done
-          [ -n "$U" ] || { echo "::error::No iOS runtime fits the iPhone Duo"; exit 1; }
-          xcrun simctl boot "$U"; xcrun simctl bootstatus "$U" -b
-          echo "== simctl commands about folding/posture =="
-          xcrun simctl help 2>&1 | grep -iE "fold|posture|hinge|display" || true
-          APP=build/Build/Products/Debug-iphonesimulator/App.app
-          xcrun simctl install "$U" "$APP"
-          xcrun simctl launch "$U" com.clearedfortakeoff.app; sleep 12
-          shot(){ xcrun simctl io "$U" screenshot --display=3 "../duo-check/$1-inside.png" || true; xcrun simctl io "$U" screenshot --display=1 "../duo-check/$1-outside.png" || true; }
-          shot 1-app
-          echo "== screens =="; xcrun simctl io "$U" enumerate 2>&1 | grep -iE "display|screen|power|name|LCD|state" | head -30 || true
-          # "unfold": inside screen on, outside screen off
-          xcrun simctl io "$U" screenConfig --display=3 power on || true
-          xcrun simctl io "$U" screenConfig --display=1 power off || true
-          sleep 8
-          xcrun simctl terminate "$U" com.clearedfortakeoff.app || true
-          xcrun simctl launch "$U" com.clearedfortakeoff.app; sleep 12
-          shot 1b-after-unfold
-          xcrun simctl launch "$U" com.apple.Preferences; sleep 6
-          shot 2-settings-for-comparison
-          xcrun simctl launch "$U" com.clearedfortakeoff.app; sleep 4
-          shot 3-app-again
-          plutil -p "$APP/Info.plist" | grep -E "DTSDKName|DTPlatformVersion|DTXcode\"|UIRequiresFullScreen|UISupportedInterfaceOrientations" || true
-          ls -la ../duo-check
       - name: Save the pictures on the screenshots branch
         working-directory: .
         run: |

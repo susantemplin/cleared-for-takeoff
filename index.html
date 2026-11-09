@@ -1622,6 +1622,7 @@ function ttsVoice(){if(!TTS)return null;var v=[];try{v=TTS.getVoices()||[];}catc
 /* iPhone: speak with Apple's own engine (app/ios-native/TakeoffSpeechPlugin.swift), which can use the
    Premium and Enhanced voices the web voices can't reach. Falls back to web speech if it's missing. */
 var NSPEECH=null,nspeechOk=true,nspeechWhy='',ttsInfo='';
+if(NATIVE){try{console.log('[takeoff] plugins seen by the page: '+((CAP.PluginHeaders||[]).map(function(h){return h&&h.name;}).join(', ')||'none')+' | Plugins object: '+Object.keys(CAP.Plugins||{}).join(', '));}catch(e){}}
 try{ttsInfo=localStorage.getItem('cft-tts')||'';}catch(e){}
 function noteTts(t){ttsInfo=t;try{localStorage.setItem('cft-tts',t);}catch(e){}}
 if(NATIVE&&PLATFORM==='ios'&&typeof CAP.registerPlugin==='function'){try{NSPEECH=CAP.registerPlugin('TakeoffSpeech');}catch(e){NSPEECH=null;}}
