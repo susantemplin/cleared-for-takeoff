@@ -81,6 +81,9 @@ function ymd(off) { const d = new Date(Date.now() + off * 86400000); return d.ge
         days: [ymd(-4), ymd(-3), ymd(-2), ymd(-1), ymd(0)], interview: ymd(9), favs: {},
         stories: [{ id: 's1', title: S.story.title, s: S.story.s, t: '', a: S.story.a, r: S.story.r, types: ['upset', 'above'] }],
         seen: {}, history: {} };
+      // look exactly like the phone app (the app is drawn ~12% smaller than the website)
+      await ctx.addInitScript((ua) => { const add = () => document.documentElement.classList.add('native', 'native-ios');
+        if (document.documentElement) add(); document.addEventListener('DOMContentLoaded', add); }, dev.ua);
       await ctx.addInitScript(([lang, st]) => {
         try { if (sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1');
           localStorage.setItem('cft-lang', lang); localStorage.setItem('cft_v1', JSON.stringify(st)); localStorage.removeItem('cft-theme'); } catch (e) {}
