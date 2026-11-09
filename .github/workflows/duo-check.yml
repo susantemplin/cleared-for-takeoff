@@ -58,11 +58,12 @@ jobs:
           APP=build/Build/Products/Debug-iphonesimulator/App.app
           xcrun simctl install "$U" "$APP"
           xcrun simctl launch "$U" com.clearedfortakeoff.app; sleep 12
-          xcrun simctl io "$U" screenshot ../duo-check/1-app.png
+          shot(){ xcrun simctl io "$U" screenshot --display=3 "../duo-check/$1-inside.png" || true; xcrun simctl io "$U" screenshot --display=1 "../duo-check/$1-outside.png" || true; }
+          shot 1-app
           xcrun simctl launch "$U" com.apple.Preferences; sleep 6
-          xcrun simctl io "$U" screenshot ../duo-check/2-settings-for-comparison.png
+          shot 2-settings-for-comparison
           xcrun simctl launch "$U" com.clearedfortakeoff.app; sleep 4
-          xcrun simctl io "$U" screenshot ../duo-check/3-app-again.png
+          shot 3-app-again
           plutil -p "$APP/Info.plist" | grep -E "DTSDKName|DTPlatformVersion|DTXcode\"|UIRequiresFullScreen|UISupportedInterfaceOrientations" || true
           ls -la ../duo-check
       - name: Save the pictures on the screenshots branch
