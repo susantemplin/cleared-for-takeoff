@@ -17,7 +17,7 @@ on:
         options: [apple, play]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   screenshots:
@@ -45,3 +45,13 @@ jobs:
           name: ${{ inputs.store == 'play' && 'google-play-screenshots' || 'app-store-screenshots' }}
           path: store-screenshots
           retention-days: 30
+
+      # Also keep a copy on the "screenshots" branch (never touches the website), so they can be
+      # checked and downloaded without the artifact zip.
+      - name: Save a copy on the screenshots branch
+        run: |
+          git config user.name "github-actions"; git config user.email "github-actions@users.noreply.github.com"
+          B=screenshots; D=$(mktemp -d)
+          if git fetch -q origin $B 2>/dev/null; then git worktree add -q $D origin/$B; else git worktree add -q --detach $D; (cd $D && git checkout -q --orphan $B && git rm -rqf .); fi
+          rm -rf "$D/${{ inputs.store }}"; mkdir -p "$D/${{ inputs.store }}"; cp -r store-screenshots/. "$D/${{ inputs.store }}/"
+          cd $D && git add -A && git commit -qm "Screenshots (${{ inputs.store }}) from run ${{ github.run_id }}" && git push -q origin HEAD:refs/heads/$B
