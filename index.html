@@ -409,6 +409,7 @@ html.first #welcome:empty::after{content:'';width:72px;height:72px;border-radius
   #answer{min-height:260px}
   #p-stories:not([hidden]),#p-tips:not([hidden]){columns:2;column-gap:28px}
   #p-stories .card,#p-tips .card{break-inside:avoid;display:inline-block;width:100%}
+  #p-stories .slist{break-inside:avoid;display:inline-block;width:100%}
 }
 html.tallhdr .top{position:relative}
 html.tallhdr #p-practice .qcol{position:static}
@@ -535,8 +536,10 @@ html.native{--ui:.88}
       <div id="storyMsg" class="err" hidden></div>
     </div>
 
+    <div class="slist">
     <h2 class="section-h">Saved stories</h2>
     <div id="storyList"></div>
+    </div>
 
     <div class="card">
       <h3>Back up your stories</h3>

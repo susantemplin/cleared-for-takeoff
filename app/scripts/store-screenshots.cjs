@@ -130,10 +130,10 @@ function ymd(off) { const d = new Date(Date.now() + off * 86400000); return d.ge
       await p.evaluate(() => window.scrollTo(0, 0)); await shot('practice');
       // 2. AI feedback with a stronger version
       await p.click('#btnFeedback'); await p.waitForSelector('#feedback:not([hidden])'); await p.waitForTimeout(300);
-      await p.evaluate(() => { const f = document.getElementById('feedback'); if (window.innerWidth < 900) window.scrollTo(0, f.getBoundingClientRect().top + scrollY - document.querySelector('.top').offsetHeight - 10); });
+      await p.evaluate(() => { const f = document.getElementById('feedback'); if (window.innerWidth < 900) window.scrollTo(0, f.getBoundingClientRect().top + scrollY - document.querySelector('.top').getBoundingClientRect().bottom - 14); });
       await shot('feedback');
       // 3. My stories
-      await p.click('#t-stories'); await p.evaluate(() => { const l = document.getElementById('storyList'); if (window.innerWidth < 900) window.scrollTo(0, 0); }); await shot('stories');
+      await p.click('#t-stories'); await p.evaluate(() => { const l = document.getElementById('storyList'); window.scrollTo(0, 0); }); await shot('stories');
       // 4. Flight Deck menu
       await p.click('#t-practice'); await p.click('#menuBtn'); await shot('flight-deck');
       // 5. Practice history
