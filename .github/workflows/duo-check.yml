@@ -62,14 +62,13 @@ jobs:
           xcrun simctl launch "$U" com.clearedfortakeoff.app; sleep 12
           shot(){ xcrun simctl io "$U" screenshot --display=3 "../duo-check/$1-inside.png" || true; xcrun simctl io "$U" screenshot --display=1 "../duo-check/$1-outside.png" || true; }
           shot 1-app
-          echo "== simctl ui help =="; xcrun simctl ui 2>&1 | head -60 || true
-          echo "== simctl io help =="; xcrun simctl io 2>&1 | head -60 || true
-          echo "== full help, any fold words =="; xcrun simctl help 2>&1 | grep -iE "fold|posture|hinge|open|state" || true
-          # try to unfold the Duo (whichever command this Xcode has), then shoot the inside screen
-          for c in "ui $U posture open" "ui $U posture unfolded" "ui $U fold open" "ui $U fold unfolded" "ui $U folded off" "ui $U device_posture open" "ui $U hinge open" "io $U posture open" "io $U unfold"; do
-            echo "-- trying: simctl $c"; xcrun simctl $c 2>&1 | head -3 && sleep 4
-          done
-          sleep 4
+          echo "== screens =="; xcrun simctl io "$U" enumerate 2>&1 | grep -iE "display|screen|power|name|LCD|state" | head -30 || true
+          # "unfold": inside screen on, outside screen off
+          xcrun simctl io "$U" screenConfig --display=3 power on || true
+          xcrun simctl io "$U" screenConfig --display=1 power off || true
+          sleep 8
+          xcrun simctl terminate "$U" com.clearedfortakeoff.app || true
+          xcrun simctl launch "$U" com.clearedfortakeoff.app; sleep 12
           shot 1b-after-unfold
           xcrun simctl launch "$U" com.apple.Preferences; sleep 6
           shot 2-settings-for-comparison
