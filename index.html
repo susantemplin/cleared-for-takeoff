@@ -404,7 +404,7 @@ html.first #welcome:empty::after{content:'';width:72px;height:72px;border-radius
   .wrap{padding-left:calc(32px + var(--sl));padding-right:calc(32px + var(--sr))}
   .top-in{padding:0 16px}
   #p-practice:not([hidden]){display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:32px;align-items:start}
-  #p-practice .qcol{position:sticky;top:calc(var(--st) + 76px)}
+  #p-practice .qcol{position:sticky;top:calc(var(--st) + 76px);top:calc(var(--toph,calc(var(--st) + 64px)) + 12px)}
   #p-practice .acol{padding-top:4px}
   #answer{min-height:260px;min-height:max(260px,40vh)}
   #p-stories:not([hidden]),#p-tips:not([hidden]){columns:2;column-gap:28px}
@@ -942,6 +942,7 @@ function fixPad(){var t=document.querySelector('.top');if(!t)return;
   /* with very large text the header can get tall; then it scrolls away instead of covering the screen */
   var tall=t.offsetHeight>window.innerHeight*0.2;document.documentElement.classList.toggle('tallhdr',tall);
   document.documentElement.style.scrollPaddingTop=(tall?12:t.offsetHeight+12)+'px';
+  document.documentElement.style.setProperty('--toph',t.offsetHeight+'px'); /* the iPad's sticky question column sits right under it */
   /* keep the bottom of every screen clear of the tab bar, whatever the text size */
   var nv=document.querySelector('nav.tabs');if(nv&&nv.offsetHeight)document.documentElement.style.setProperty('--navh',nv.offsetHeight+'px');}
 window.addEventListener('resize',fixPad);

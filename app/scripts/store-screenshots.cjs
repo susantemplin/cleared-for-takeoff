@@ -133,16 +133,22 @@ function ymd(off) { const d = new Date(Date.now() + off * 86400000); return d.ge
       // 1. Question of the day, answer typed in
       await p.fill('#answer', S.answer); await p.evaluate(() => { document.activeElement.blur(); document.getElementById('answer').scrollTop = 0;
         if (window.innerWidth >= 900) document.querySelectorAll('.qcol details').forEach(d => { d.open = true; }); });
+      const wide = await p.evaluate(() => window.innerWidth >= 900);
+      const getFeedback = async () => { await p.click('#btnFeedback'); await p.waitForSelector('#feedback:not([hidden])'); await p.waitForTimeout(300); };
+      // on a big iPad the practice screen alone leaves the bottom empty, so show the review coming in below the answer
+      if (wide) await getFeedback();
       await p.evaluate(() => window.scrollTo(0, 0)); await shot('practice');
       // 2. AI feedback with a stronger version
-      await p.click('#btnFeedback'); await p.waitForSelector('#feedback:not([hidden])'); await p.waitForTimeout(300);
-      await p.evaluate(() => { const f = document.getElementById('feedback'); if (window.innerWidth < 900) window.scrollTo(0, f.getBoundingClientRect().top + scrollY - document.querySelector('.top').getBoundingClientRect().bottom - 14); });
+      if (!wide) await getFeedback();
+      await p.evaluate(() => { const f = document.getElementById('feedback'); window.scrollTo(0, f.getBoundingClientRect().top + scrollY - document.querySelector('.top').getBoundingClientRect().bottom - 14); });
       // the header can change height after scrolling, so measure again and nudge until the score sits just below it
       for (let k = 0; k < 4; k++) {
         await p.waitForTimeout(150);
-        await p.evaluate(() => { if (window.innerWidth >= 900) return; const f = document.getElementById('feedback');
+        await p.evaluate(() => { const f = document.getElementById('feedback');
           const d = f.getBoundingClientRect().top - document.querySelector('.top').getBoundingClientRect().bottom - 14; if (Math.abs(d) > 1) window.scrollBy(0, d); });
       }
+      // big iPad: start at the Get feedback row so no button is sliced at the top edge
+      if (wide) await p.evaluate(() => { const b = document.getElementById('btnFeedback'); window.scrollBy(0, b.getBoundingClientRect().top - document.querySelector('.top').getBoundingClientRect().bottom - 14); });
       await shot('feedback');
       // 3. My stories
       await p.click('#t-stories'); await p.evaluate(() => { const l = document.getElementById('storyList'); window.scrollTo(0, 0); }); await shot('stories');
