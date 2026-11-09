@@ -1,0 +1,75 @@
+# Opens the iPhone app on Apple's iPhone Duo simulator (Xcode 27.1) and takes screenshots,
+# to check the app fills the Duo's inside screen. No Apple account or real Duo needed.
+# Pictures go to the "screenshots" branch, folder duo-check/.
+name: Check iPhone Duo
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  duo:
+    runs-on: xcode-27
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Use Xcode 27.1
+        run: |
+          if [ -d /Applications/Xcode_27.1.app ]; then sudo xcode-select -s /Applications/Xcode_27.1.app; fi
+          xcodebuild -version
+      - name: Make the iPhone project (same as the TestFlight build)
+        run: |
+          npm install --no-audit --no-fund
+          node scripts/prepare-www.mjs
+          npx cap add ios
+          npx cap sync ios
+          python3 -m pip install --quiet pillow || python3 -m pip install --quiet --break-system-packages pillow
+          python3 scripts/make-icons.py
+          python3 scripts/patch-ios.py
+          node scripts/make-widget.mjs
+          gem list -i xcodeproj >/dev/null 2>&1 || sudo gem install xcodeproj --no-document
+          ruby scripts/add-widget.rb
+          ruby scripts/add-native.rb
+      - name: Build for the simulator
+        run: |
+          set -o pipefail
+          xcodebuild build -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO | tail -5
+          ls build/Build/Products/Debug-iphonesimulator/
+      - name: Open on the iPhone Duo simulator and take pictures
+        run: |
+          mkdir -p ../duo-check
+          echo "== Device types with Duo / fold in the name =="
+          xcrun simctl list devicetypes | grep -iE "duo|fold" || true
+          echo "== Runtimes =="
+          xcrun simctl list runtimes
+          DT=$(xcrun simctl list devicetypes | grep -iE "duo" | head -1 | sed -E 's/.*\((com\.apple[^)]*)\).*/\1/')
+          RT=$(xcrun simctl list runtimes | grep -i "iOS 27" | tail -1 | sed -E 's/.* - (com\.apple[^ ]*).*/\1/')
+          echo "Device type: $DT  Runtime: $RT"
+          if [ -z "$DT" ]; then echo "::error::No iPhone Duo simulator in this Xcode"; xcrun simctl list devicetypes; exit 1; fi
+          U=$(xcrun simctl create "Duo check" "$DT" "$RT")
+          xcrun simctl boot "$U"; xcrun simctl bootstatus "$U" -b
+          echo "== simctl commands about folding/posture =="
+          xcrun simctl help 2>&1 | grep -iE "fold|posture|hinge|display" || true
+          APP=build/Build/Products/Debug-iphonesimulator/App.app
+          xcrun simctl install "$U" "$APP"
+          xcrun simctl launch "$U" com.clearedfortakeoff.app; sleep 12
+          xcrun simctl io "$U" screenshot ../duo-check/1-app.png
+          xcrun simctl launch "$U" com.apple.Preferences; sleep 6
+          xcrun simctl io "$U" screenshot ../duo-check/2-settings-for-comparison.png
+          xcrun simctl launch "$U" com.clearedfortakeoff.app; sleep 4
+          xcrun simctl io "$U" screenshot ../duo-check/3-app-again.png
+          plutil -p "$APP/Info.plist" | grep -E "DTSDKName|DTPlatformVersion|DTXcode\"|UIRequiresFullScreen|UISupportedInterfaceOrientations" || true
+          ls -la ../duo-check
+      - name: Save the pictures on the screenshots branch
+        working-directory: .
+        run: |
+          git config user.name "github-actions"; git config user.email "github-actions@users.noreply.github.com"
+          B=screenshots; D=$(mktemp -d)
+          git fetch -q origin $B && git worktree add -q $D origin/$B
+          rm -rf "$D/duo-check"; cp -r duo-check "$D/duo-check"
+          cd $D && git add -A && git commit -qm "iPhone Duo check from run ${{ github.run_id }}" && git push -q origin HEAD:refs/heads/$B
