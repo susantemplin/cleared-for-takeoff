@@ -47,6 +47,7 @@ const SAMPLE = {
       stronger: 'One night at my gate, our flight was delayed three hours, and a mom traveling with two tired kids was in tears. I walked over, brought the kids water and snacks, and found her a quieter seat by the window. Then I checked in with her every 30 minutes with updates, while still making announcements for the whole gate. When we finally boarded, she hugged me and said I had saved her night.',
       changes: ['Sets the scene in one sentence', 'Shows you cared for everyone, not just one person', 'Keeps the strong ending'],
       star: { situation: true, task: true, action: true, result: true } },
+    story2: { title: 'The Saturday rush', s: 'Two coworkers called out on a packed Saturday and our check-in line wrapped around the lobby.', a: 'I split the line by bag drop and check-in, sent families to the kiosk I was running, and kept my lead updated every 15 minutes.', r: 'Every passenger made their flight, and my lead asked me to train two new hires on how I did it.' },
     story: { title: 'The three-hour delay', s: 'Our flight was delayed three hours and a mom with two tired kids was in tears.', a: 'I brought water and snacks, found her a quieter seat, and gave her updates every 30 minutes.', r: 'She hugged me at boarding and said I saved her night.' },
   },
   es: {
@@ -57,6 +58,7 @@ const SAMPLE = {
       stronger: 'Una noche en mi puerta, nuestro vuelo se retrasó tres horas y una mamá que viajaba con dos niños cansados estaba llorando. Me acerqué, les llevé agua y algo de comer a los niños y le busqué un asiento más tranquilo junto a la ventana. Luego le di noticias cada 30 minutos, sin dejar de hacer los anuncios para toda la puerta. Cuando por fin abordamos, me abrazó y me dijo que le había salvado la noche.',
       changes: ['Presenta la escena en una frase', 'Muestra que cuidaste a todos, no solo a una persona', 'Mantiene el final fuerte'],
       star: { situation: true, task: true, action: true, result: true } },
+    story2: { title: 'El sábado de locos', s: 'Dos compañeros faltaron un sábado lleno y la fila de documentación le daba la vuelta al vestíbulo.', a: 'Separé la fila entre entrega de maletas y documentación, mandé a las familias al quiosco que yo atendía y le daba noticias a mi líder cada 15 minutos.', r: 'Todos los pasajeros alcanzaron su vuelo, y mi líder me pidió que les enseñara a dos personas nuevas cómo lo hice.' },
     story: { title: 'El retraso de tres horas', s: 'Nuestro vuelo se retrasó tres horas y una mamá con dos niños cansados estaba llorando.', a: 'Les llevé agua y algo de comer, le busqué un asiento más tranquilo y le di noticias cada 30 minutos.', r: 'Me abrazó al abordar y me dijo que le había salvado la noche.' },
   },
 };
@@ -91,10 +93,13 @@ function ymd(off) { const d = new Date(Date.now() + off * 86400000); return d.ge
       const S = SAMPLE[lang];
       const state = { role: 'fa', set: 'core', welcomed: true, answered: 9, airline: '',
         days: [ymd(-4), ymd(-3), ymd(-2), ymd(-1), ymd(0)], interview: ymd(9), favs: {},
-        stories: [{ id: 's1', title: S.story.title, s: S.story.s, t: '', a: S.story.a, r: S.story.r, types: ['upset', 'above'] }],
+        stories: [{ id: 's1', title: S.story.title, s: S.story.s, t: '', a: S.story.a, r: S.story.r, types: ['upset', 'above'] },
+          { id: 's2', title: S.story2.title, s: S.story2.s, t: '', a: S.story2.a, r: S.story2.r, types: ['rush', 'team'] }],
         seen: {}, history: {} };
       // look exactly like the phone app (the app is drawn ~12% smaller than the website)
-      await ctx.addInitScript((ua) => { const add = () => { document.documentElement.classList.add('native'); if (!/android/.test(ua)) document.documentElement.classList.add('native-ios'); };
+      await ctx.addInitScript((ua) => { const add = () => { document.documentElement.classList.add('native'); if (!/android/.test(ua)) { document.documentElement.classList.add('native-ios');
+          // the iPhone/iPad app doesn't show the daily review count, so the screenshots don't either
+          if (!document.getElementById('shotcss') && document.head) { const st = document.createElement('style'); st.id = 'shotcss'; st.textContent = '#leftNote{visibility:hidden}'; document.head.appendChild(st); } } };
         if (document.documentElement) add(); document.addEventListener('DOMContentLoaded', add); }, dev.ua);
       await ctx.addInitScript(([lang, st]) => {
         try { if (sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1');
@@ -126,7 +131,8 @@ function ymd(off) { const d = new Date(Date.now() + off * 86400000); return d.ge
       }
       await p.fill('#answer', ''); await p.evaluate(() => window.scrollTo(0, 0));
       // 1. Question of the day, answer typed in
-      await p.fill('#answer', S.answer); await p.evaluate(() => document.activeElement.blur());
+      await p.fill('#answer', S.answer); await p.evaluate(() => { document.activeElement.blur(); document.getElementById('answer').scrollTop = 0;
+        if (window.innerWidth >= 900) document.querySelectorAll('.qcol details').forEach(d => { d.open = true; }); });
       await p.evaluate(() => window.scrollTo(0, 0)); await shot('practice');
       // 2. AI feedback with a stronger version
       await p.click('#btnFeedback'); await p.waitForSelector('#feedback:not([hidden])'); await p.waitForTimeout(300);

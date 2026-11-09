@@ -406,7 +406,7 @@ html.first #welcome:empty::after{content:'';width:72px;height:72px;border-radius
   #p-practice:not([hidden]){display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:32px;align-items:start}
   #p-practice .qcol{position:sticky;top:calc(var(--st) + 76px)}
   #p-practice .acol{padding-top:4px}
-  #answer{min-height:260px}
+  #answer{min-height:260px;min-height:max(260px,40vh)}
   #p-stories:not([hidden]),#p-tips:not([hidden]){columns:2;column-gap:28px}
   #p-stories .card,#p-tips .card{break-inside:avoid;display:inline-block;width:100%}
   #p-stories .slist{break-inside:avoid;display:inline-block;width:100%}
@@ -432,6 +432,9 @@ html.tallhdr #p-practice .qcol{position:static}
    --ui multiplies every text size; the phone's Larger Text setting (--tz) still scales on top of it.
    Spacing is trimmed a little too; tap targets stay at least 44pt. */
 html.native{--ui:.88}
+/* tablets in the app: drop the phone-size trim, and draw bigger on an iPad or large tablet so it fills the screen */
+@media (min-width:600px){html.native{--ui:1}}
+@media (min-width:900px){html.native{--ui:1.18}}
 .native .wrap{padding-top:10px}
 .native .strip{padding:10px 14px 12px}
 .native .card{padding:12px 14px}
@@ -1615,16 +1618,31 @@ function ttsVoice(){if(!TTS)return null;var v=[];try{v=TTS.getVoices()||[];}catc
     if(x.localService!==false)n+=3;if(x['default'])n+=2;return n;};
   var best=null,bs=-1;for(var i=0;i<v.length;i++){var sc=score(v[i]);if(sc>bs){bs=sc;best=v[i];}}
   return bs>=0?best:null;}
-function speakBtn(attr){return ttsVoice()?'<button type="button" class="speak" '+attr+' aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><span>Hear it</span></button>':'';}
+/* iPhone: speak with Apple's own engine (app/ios-native/TakeoffSpeechPlugin.swift), which can use the
+   Premium and Enhanced voices the web voices can't reach. Falls back to web speech if it's missing. */
+var NSPEECH=null,nspeechOk=true;
+if(NATIVE&&PLATFORM==='ios'&&typeof CAP.registerPlugin==='function'){try{NSPEECH=CAP.registerPlugin('TakeoffSpeech');}catch(e){NSPEECH=null;}}
+function canSpeak(){return !!((NSPEECH&&nspeechOk)||ttsVoice());}
+function speakBtn(attr){return canSpeak()?'<button type="button" class="speak" '+attr+' aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><span>Hear it</span></button>':'';}
 function ttsOff(){if(ttsBtn){ttsBtn.classList.remove('on');ttsBtn.setAttribute('aria-pressed','false');var sp=ttsBtn.querySelector('span');if(sp)sp.textContent=T('Hear it');}ttsBtn=null;}
-function ttsStop(){if(TTS){try{TTS.cancel();}catch(e){}}ttsOff();}
-function speak(text,btn){
-  if(!TTS)return;var again=btn&&btn===ttsBtn;ttsStop();if(again)return;
-  var v=ttsVoice();if(!v||!text)return;
-  var u=new SpeechSynthesisUtterance(String(text).replace(/\[([^\]]+)\]/g,'$1'));u.voice=v;u.lang=v.lang;u.rate=0.9;u.pitch=1;
+function ttsStop(){if(NSPEECH&&nspeechOk){try{NSPEECH.stop().catch(function(){});}catch(e){}}if(TTS){try{TTS.cancel();}catch(e){}}ttsOff();}
+function ttsOn(btn){ttsBtn=btn;if(btn){btn.classList.add('on');btn.setAttribute('aria-pressed','true');var sp=btn.querySelector('span');if(sp)sp.textContent=T('Stop');}}
+function webSpeak(say,btn){
+  var v=ttsVoice();if(!TTS||!v){ttsOff();return;}
+  var u=new SpeechSynthesisUtterance(say);u.voice=v;u.lang=v.lang;u.rate=0.9;u.pitch=1;
   u.onend=u.onerror=function(){if(ttsBtn===btn)ttsOff();};
-  ttsBtn=btn;if(btn){btn.classList.add('on');btn.setAttribute('aria-pressed','true');var sp=btn.querySelector('span');if(sp)sp.textContent=T('Stop');}
-  try{TTS.speak(u);}catch(e){ttsOff();}
+  ttsOn(btn);try{TTS.speak(u);}catch(e){ttsOff();}
+}
+function speak(text,btn){
+  var again=btn&&btn===ttsBtn;ttsStop();if(again||!text)return;
+  var say=String(text).replace(/\[([^\]]+)\]/g,'$1');
+  if(NSPEECH&&nspeechOk){
+    ttsOn(btn);
+    var p;try{p=NSPEECH.speak({text:say,lang:String(I18N.speech||'en-US'),rate:0.9});}catch(e){p=Promise.reject(e);}
+    p.then(function(){if(ttsBtn===btn)ttsOff();},function(){nspeechOk=false;if(ttsBtn===btn){ttsOff();webSpeak(say,btn);}});
+    return;
+  }
+  webSpeak(say,btn);
 }
 if(TTS){try{TTS.getVoices();var vc=function(){renderStories();};if(TTS.addEventListener)TTS.addEventListener('voiceschanged',vc);else TTS.onvoiceschanged=vc;}catch(e){}}
 
