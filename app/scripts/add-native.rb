@@ -3,6 +3,7 @@
 # Run from the app folder after `npx cap add ios`. Needs the xcodeproj gem.
 require 'fileutils'
 require 'xcodeproj'
+require 'json'
 
 src = 'ios-native'
 dest = File.join('ios', 'App', 'App')
@@ -26,4 +27,14 @@ xml = xml.sub(/customClass="CAPBridgeViewController"\s+customModule="Capacitor"/
 xml = xml.sub('customClass="CAPBridgeViewController"', 'customClass="TakeoffViewController" customModule="App" customModuleProvider="target"') if xml.include?('customClass="CAPBridgeViewController"')
 File.write(sb, xml)
 abort('storyboard not updated') unless File.read(sb).include?('TakeoffViewController')
+# Capacitor builds the app's plugin list at startup from capacitor.config.json (packageClassList),
+# before the main screen's capacitorDidLoad, so list our own plugin there too.
+cfg = File.join(dest, 'capacitor.config.json')
+abort('capacitor.config.json not found (run cap sync first)') unless File.exist?(cfg)
+j = JSON.parse(File.read(cfg))
+list = (j['packageClassList'] ||= [])
+list << 'TakeoffSpeechPlugin' unless list.include?('TakeoffSpeechPlugin')
+File.write(cfg, JSON.pretty_generate(j))
+abort('packageClassList not updated') unless JSON.parse(File.read(cfg))['packageClassList'].include?('TakeoffSpeechPlugin')
+puts "packageClassList: #{list.join(', ')}"
 puts "Native files added: #{files.join(', ')}; main screen = TakeoffViewController"

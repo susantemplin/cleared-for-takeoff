@@ -38,7 +38,14 @@ public class TakeoffSpeechPlugin: CAPPlugin, CAPBridgedPlugin, AVSpeechSynthesiz
 
     override public func load() {
         synth.delegate = self
-        synth.usesApplicationAudioSession = false
+        TakeoffSpeechPlugin.setUpAudio()
+    }
+
+    // "Playback" audio, like podcast and video apps: Hear it plays even when the ring/silent switch
+    // is on silent, and other audio ducks while it speaks. Set once, never switched off, so the web
+    // voice (the fallback) gets the same treatment.
+    static func setUpAudio() {
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
     }
 
     private func score(_ v: AVSpeechSynthesisVoice, _ lang: String) -> Int {
@@ -103,9 +110,8 @@ public class TakeoffSpeechPlugin: CAPPlugin, CAPBridgedPlugin, AVSpeechSynthesiz
 
     private func start(_ v: AVSpeechSynthesisVoice?) {
         synth.delegate = self
-        // Speak on Apple's own system audio channel, not the app's: the web view also uses the app's
-        // channel, and changing it (build 111-115) left both Apple's voice and the web voice silent.
-        synth.usesApplicationAudioSession = false
+        TakeoffSpeechPlugin.setUpAudio()
+        try? AVAudioSession.sharedInstance().setActive(true)
         gotStart = false; gotWords = false
         let u = AVSpeechUtterance(string: text)
         u.voice = v

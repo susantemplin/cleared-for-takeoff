@@ -117,6 +117,8 @@ jobs:
           # The widget must be inside the app, or it won't show up on the phone
           ls "$RUNNER_TEMP/App.xcarchive/Products/Applications/App.app/PlugIns/TakeoffWidget.appex" >/dev/null \
             && echo "Widget is inside the app" || { echo "::error::TakeoffWidget.appex is missing from the app"; exit 1; }
+          grep -q TakeoffSpeechPlugin "$RUNNER_TEMP/App.xcarchive/Products/Applications/App.app/capacitor.config.json \
+            && echo "Speech plugin is registered in the app" || { echo "::error::TakeoffSpeechPlugin missing from the app's plugin list"; exit 1; }
           xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export" \
             -allowProvisioningUpdates \
