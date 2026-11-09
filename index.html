@@ -1622,11 +1622,12 @@ function ttsVoice(){if(!TTS)return null;var v=[];try{v=TTS.getVoices()||[];}catc
 /* iPhone: speak with Apple's own engine (app/ios-native/TakeoffSpeechPlugin.swift), which can use the
    Premium and Enhanced voices the web voices can't reach. Falls back to web speech if it's missing. */
 var NSPEECH=null,nspeechOk=true,nspeechWhy='',ttsInfo='';
-if(NATIVE){try{console.log('[takeoff] plugins seen by the page: '+((CAP.PluginHeaders||[]).map(function(h){return h&&h.name;}).join(', ')||'none')+' | Plugins object: '+Object.keys(CAP.Plugins||{}).join(', '));}catch(e){}}
 try{ttsInfo=localStorage.getItem('cft-tts')||'';}catch(e){}
 function noteTts(t){ttsInfo=t;try{localStorage.setItem('cft-tts',t);}catch(e){}}
 if(NATIVE&&PLATFORM==='ios'&&typeof CAP.registerPlugin==='function'){try{NSPEECH=CAP.registerPlugin('TakeoffSpeech');}catch(e){NSPEECH=null;}}
-function canSpeak(){return !!((NSPEECH&&nspeechOk)||ttsVoice());}
+/* Hear it is switched off for launch (Susan, Nov 9): the voice sounded too robotic. Set to true to bring it back. */
+var HEAR_IT=false;
+function canSpeak(){return HEAR_IT&&!!((NSPEECH&&nspeechOk)||ttsVoice());}
 function speakBtn(attr){return canSpeak()?'<button type="button" class="speak" '+attr+' aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><span>Hear it</span></button>':'';}
 function ttsOff(){if(ttsBtn){ttsBtn.classList.remove('on');ttsBtn.setAttribute('aria-pressed','false');var sp=ttsBtn.querySelector('span');if(sp)sp.textContent=T('Hear it');}ttsBtn=null;}
 function ttsStop(){if(NSPEECH&&nspeechOk){try{NSPEECH.stop().catch(function(){});}catch(e){}}if(TTS){try{TTS.cancel();}catch(e){}}ttsOff();}
@@ -2274,7 +2275,7 @@ function openDeck(){
     +deckLink('privacy.html','Privacy Policy','privacy')
     +deckLink('terms.html','Terms of Service','terms')
     +deckItem('reset','Reset my progress','reset','danger')
-    +'<p class="dabout"><span class="dquote">'+esc(T('Airline jobs are some of the most competitive jobs out there. I built this app to give you a leg up.'))+'</span><span class="dsig">'+esc(T('— Susan, gate agent at Phoenix Sky Harbor'))+'</span>'+esc(T('Every question and tip comes from real airport experience.'))+(ver?'<br>'+esc(ver):'')+(ttsInfo?'<br><span class="small">Hear it: '+esc(ttsInfo)+'</span>':'')+'</p>'
+    +'<p class="dabout"><span class="dquote">'+esc(T('Airline jobs are some of the most competitive jobs out there. I built this app to give you a leg up.'))+'</span><span class="dsig">'+esc(T('— Susan, gate agent at Phoenix Sky Harbor'))+'</span>'+esc(T('Every question and tip comes from real airport experience.'))+(ver?'<br>'+esc(ver):'')+(HEAR_IT&&ttsInfo?'<br><span class="small">Hear it: '+esc(ttsInfo)+'</span>':'')+'</p>'
   +'</div>';
   openSheet(T('Flight Deck'),h,deckClick);
 }
