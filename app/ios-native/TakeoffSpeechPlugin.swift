@@ -2,7 +2,9 @@
 // The web speech inside the app can't use the Premium or Enhanced voices people download in
 // Settings > Accessibility > Spoken Content > Voices, so the iPhone app speaks through this instead.
 // Picks the best installed voice for the language: Premium, then Enhanced, then the normal one,
-// and never the novelty voices.
+// never the novelty voices. Safety net: if speech hasn't really started within 2 seconds
+// (some downloaded voices stay silent), it retries once with the normal Apple voice, and if that
+// is silent too it reports a failure so the app falls back to its web voice.
 import Foundation
 import AVFoundation
 import Capacitor
@@ -19,6 +21,13 @@ public class TakeoffSpeechPlugin: CAPPlugin, CAPBridgedPlugin, AVSpeechSynthesiz
 
     private let synth = AVSpeechSynthesizer()
     private var pending: CAPPluginCall?
+    private var started = false
+    private var attempt = 0
+    private var token = 0
+    private var text = ""
+    private var lang = "en-US"
+    private var rate: Float = 0.9
+    private var usedVoice: AVSpeechSynthesisVoice?
 
     override public func load() {
         synth.delegate = self
@@ -35,6 +44,7 @@ public class TakeoffSpeechPlugin: CAPPlugin, CAPBridgedPlugin, AVSpeechSynthesiz
         if #available(iOS 16.0, *), v.quality == .premium { n += 40 }
         else if v.quality == .enhanced { n += 30 }
         if #available(iOS 17.0, *), v.voiceTraits.contains(.isNoveltyVoice) { n -= 80 }
+        if #available(iOS 17.0, *), v.voiceTraits.contains(.isPersonalVoice) { n -= 80 }
         let id = v.identifier.lowercased()
         if id.contains("eloquence") || id.contains("speech.synthesis.voice") { n -= 60 }
         return n
@@ -50,56 +60,96 @@ public class TakeoffSpeechPlugin: CAPPlugin, CAPBridgedPlugin, AVSpeechSynthesiz
         return best ?? AVSpeechSynthesisVoice(language: lang)
     }
 
-    private func qualityName(_ v: AVSpeechSynthesisVoice) -> String {
+    private func plainVoice(_ lang: String) -> AVSpeechSynthesisVoice? {
+        return AVSpeechSynthesisVoice(language: lang)
+            ?? AVSpeechSynthesisVoice(language: String(lang.prefix(2)))
+            ?? AVSpeechSynthesisVoice(language: AVSpeechSynthesisVoice.currentLanguageCode())
+    }
+
+    private func qualityName(_ v: AVSpeechSynthesisVoice?) -> String {
+        guard let v = v else { return "none" }
         if #available(iOS 16.0, *), v.quality == .premium { return "premium" }
         return v.quality == .enhanced ? "enhanced" : "default"
     }
 
     @objc func voice(_ call: CAPPluginCall) {
         let lang = call.getString("lang") ?? "en-US"
-        guard let v = bestVoice(lang) else { call.resolve(["available": false]); return }
-        call.resolve(["available": true, "name": v.name, "quality": qualityName(v), "lang": v.language])
+        let v = bestVoice(lang)
+        call.resolve(["available": v != nil, "name": v?.name ?? "", "quality": qualityName(v), "lang": v?.language ?? "",
+                      "count": AVSpeechSynthesisVoice.speechVoices().count])
     }
 
     @objc func speak(_ call: CAPPluginCall) {
-        let text = call.getString("text") ?? ""
-        let lang = call.getString("lang") ?? "en-US"
-        let rate = Float(call.getDouble("rate") ?? 0.9)
+        let t = call.getString("text") ?? ""
+        let l = call.getString("lang") ?? "en-US"
+        let r = Float(call.getDouble("rate") ?? 0.9)
         DispatchQueue.main.async {
-            if self.synth.isSpeaking { self.synth.stopSpeaking(at: .immediate) }
-            self.finish()
-            guard !text.isEmpty else { call.resolve(); return }
-            try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
-            try? AVAudioSession.sharedInstance().setActive(true)
-            let u = AVSpeechUtterance(string: text)
-            u.voice = self.bestVoice(lang)
-            // the web rate 1.0 is normal speed; Apple's normal is AVSpeechUtteranceDefaultSpeechRate
-            u.rate = max(AVSpeechUtteranceMinimumSpeechRate, min(AVSpeechUtteranceMaximumSpeechRate, AVSpeechUtteranceDefaultSpeechRate * rate))
-            u.pitchMultiplier = 1.0
-            u.postUtteranceDelay = 0
+            self.cancelCurrent()
+            guard !t.isEmpty else { call.resolve(); return }
+            self.text = t; self.lang = l; self.rate = r
             self.pending = call
-            self.synth.speak(u)
+            self.attempt = 0
+            self.start(self.bestVoice(l))
         }
+    }
+
+    private func start(_ v: AVSpeechSynthesisVoice?) {
+        synth.delegate = self
+        let session = AVAudioSession.sharedInstance()
+        try? session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+        try? session.setActive(true)
+        let u = AVSpeechUtterance(string: text)
+        u.voice = v
+        u.rate = max(AVSpeechUtteranceMinimumSpeechRate, min(AVSpeechUtteranceMaximumSpeechRate, AVSpeechUtteranceDefaultSpeechRate * rate))
+        u.pitchMultiplier = 1.0
+        u.volume = 1.0
+        usedVoice = v
+        started = false
+        token += 1
+        let mine = token
+        synth.speak(u)
+        // safety net: no words actually spoken within 2 seconds (Apple reports each word as it's said)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            guard let self = self, self.token == mine, !self.started, self.pending != nil else { return }
+            self.token += 1
+            self.synth.stopSpeaking(at: .immediate)
+            if self.attempt == 0 {
+                self.attempt = 1
+                self.start(self.plainVoice(self.lang))
+            } else {
+                let c = self.pending; self.pending = nil
+                c?.reject("Speech did not start", "SILENT")
+            }
+        }
+    }
+
+    private func cancelCurrent() {
+        token += 1
+        if synth.isSpeaking || synth.isPaused { synth.stopSpeaking(at: .immediate) }
+        if let c = pending { pending = nil; c.resolve(["stopped": true]) }
     }
 
     @objc func stop(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
-            self.synth.stopSpeaking(at: .immediate)
-            self.finish()
+            self.cancelCurrent()
             call.resolve()
         }
     }
 
-    private func finish() {
-        if let c = pending { pending = nil; c.resolve() }
-        try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+    private func done() {
+        guard let c = pending else { return }
+        pending = nil
+        c.resolve(["voice": usedVoice?.name ?? "", "quality": qualityName(usedVoice), "retried": attempt > 0])
+    }
+
+    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance: AVSpeechUtterance) {
+        DispatchQueue.main.async { self.started = true }
     }
 
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        DispatchQueue.main.async { self.finish() }
-    }
-
-    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        DispatchQueue.main.async { self.finish() }
+        DispatchQueue.main.async {
+            guard self.started else { return } // a silent run is handled by the safety net
+            self.done()
+        }
     }
 }
