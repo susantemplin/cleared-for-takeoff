@@ -1,0 +1,13 @@
+# Quick check: which Xcode versions does GitHub's Xcode 27 machine have? (safe to delete)
+name: Check Xcode versions
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: xcode-27
+    timeout-minutes: 10
+    steps:
+      - run: |
+          ls -d /Applications/Xcode*.app
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i iphoneos
+          sw_vers
