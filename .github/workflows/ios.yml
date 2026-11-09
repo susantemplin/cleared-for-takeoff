@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   ios:
-    runs-on: macos-26
+    runs-on: xcode-27   # GitHub's Xcode 27 machine (the macos-26 one stops at Xcode 26.6)
     timeout-minutes: 60
     defaults:
       run:
@@ -34,17 +34,21 @@ jobs:
           node-version: 22
 
       # iPhone Duo: only apps built with Xcode 27.1 (iOS 27.1 SDK) or newer fill the big inside screen.
-      # Older builds show in a small window with black borders. So use the newest Xcode on the runner.
-      - name: Use the newest Xcode (27.1 or later for iPhone Duo)
+      # Older builds show in a small window with black borders. Use Xcode 27.1, the machine's default
+      # (the newest one there may be a beta, and Apple won't accept apps built with a beta Xcode).
+      - name: Use Xcode 27.1 (needed for iPhone Duo)
         run: |
-          X=$(ls -d /Applications/Xcode_*.app | grep -E 'Xcode_[0-9]+(\.[0-9]+)*\.app$' | sort -V | tail -1)
-          echo "Using $X"
-          sudo xcode-select -s "$X"
+          if [ -d /Applications/Xcode_27.1.app ]; then sudo xcode-select -s /Applications/Xcode_27.1.app; fi
           xcodebuild -version
           V=$(xcodebuild -version | head -1 | awk '{print $2}')
+          echo "Using Xcode $V: $(xcode-select -p)"
           if [ "$(printf '%s\n' 27.1 "$V" | sort -V | head -1)" != "27.1" ]; then
-            echo "::warning title=iPhone Duo::This runner only has Xcode $V. The app will build, but it won't fill the iPhone Duo's inside screen until it's built with Xcode 27.1 or later."
+            echo "::error title=iPhone Duo::Only Xcode $V here. The app must be built with Xcode 27.1 or later to fill the iPhone Duo's inside screen."; exit 1
           fi
+          if xcodebuild -version | grep -qi beta || xcode-select -p | grep -qi beta; then
+            echo "::error::This Xcode is a beta; Apple won't accept the upload."; exit 1
+          fi
+          xcodebuild -showsdks | grep -i iphoneos
 
       - name: Install app tools
         run: npm install --no-audit --no-fund
