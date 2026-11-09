@@ -27,6 +27,7 @@ const APPLE_DEVICES = [
   { id: 'iphone-duo-inside', w: 669, h: 951, scale: 3, ua: 'iphone' },   // 2007 x 2853
   { id: 'iphone-duo-outside', w: 466, h: 678, scale: 3, ua: 'iphone' },  // 1398 x 2034
   { id: 'iphone-6.9', w: 440, h: 956, scale: 3, ua: 'iphone' },          // 1320 x 2868
+  { id: 'iphone-6.3', w: 402, h: 874, scale: 3, ua: 'iphone' },          // 1206 x 2622 (App Store's required 'medium' iPhone size)
   { id: 'ipad-13', w: 1032, h: 1376, scale: 2, ua: 'ipad' },             // 2064 x 2752
 ];
 const DEVICES = PLAY ? PLAY_DEVICES : APPLE_DEVICES;
