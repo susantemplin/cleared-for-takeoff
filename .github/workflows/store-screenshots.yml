@@ -5,8 +5,16 @@ name: Make App Store screenshots
 # "optimized for iPhone Duo" badge, plus iPhone 6.9" and iPad 13".
 # Runs by hand: Actions tab > Make App Store screenshots > Run workflow.
 # When it finishes, download "app-store-screenshots" from the bottom of the run page.
+# Pick "play" to get the Google Play sets instead (phone, 7-inch and 10-inch tablet, English),
+# downloaded as "google-play-screenshots".
 on:
   workflow_dispatch:
+    inputs:
+      store:
+        description: 'apple or play'
+        default: 'apple'
+        type: choice
+        options: [apple, play]
 
 permissions:
   contents: read
@@ -28,10 +36,12 @@ jobs:
           npx playwright install --with-deps chromium
 
       - name: Take the screenshots
+        env:
+          STORE: ${{ inputs.store }}
         run: node app/scripts/store-screenshots.cjs store-screenshots
 
       - uses: actions/upload-artifact@v4
         with:
-          name: app-store-screenshots
+          name: ${{ inputs.store == 'play' && 'google-play-screenshots' || 'app-store-screenshots' }}
           path: store-screenshots
           retention-days: 30

@@ -15,13 +15,25 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const OUT = path.resolve(process.argv[2] || path.join(ROOT, 'store-screenshots'));
 const FONT_CSS = process.env.FONT_CSS || ''; // only for offline previews; the real Barlow fonts load from Google on GitHub
 
-const DEVICES = [
+// STORE=play makes Google Play sets instead (all exactly 9:16, PNG, English only):
+//   phone 1080x1920, 7-inch tablet 1152x2048, 10-inch tablet 1440x2560.
+const PLAY = process.env.STORE === 'play';
+const PLAY_DEVICES = [
+  { id: 'play-phone', w: 360, h: 640, scale: 3, ua: 'android' },        // 1080 x 1920
+  { id: 'play-tablet-7in', w: 576, h: 1024, scale: 2, ua: 'androidtab' },  // 1152 x 2048
+  { id: 'play-tablet-10in', w: 720, h: 1280, scale: 2, ua: 'androidtab' }, // 1440 x 2560
+];
+const APPLE_DEVICES = [
   { id: 'iphone-duo-inside', w: 669, h: 951, scale: 3, ua: 'iphone' },   // 2007 x 2853
   { id: 'iphone-duo-outside', w: 466, h: 678, scale: 3, ua: 'iphone' },  // 1398 x 2034
   { id: 'iphone-6.9', w: 440, h: 956, scale: 3, ua: 'iphone' },          // 1320 x 2868
   { id: 'ipad-13', w: 1032, h: 1376, scale: 2, ua: 'ipad' },             // 2064 x 2752
 ];
+const DEVICES = PLAY ? PLAY_DEVICES : APPLE_DEVICES;
+const LANGS = PLAY ? ['en'] : ['en', 'es'];
 const UA = {
+  android: 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36',
+  androidtab: 'Mozilla/5.0 (Linux; Android 15; Pixel Tablet) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
   iphone: 'Mozilla/5.0 (iPhone; CPU iPhone OS 27_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1',
   ipad: 'Mozilla/5.0 (iPad; CPU OS 27_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1',
 };
@@ -65,7 +77,7 @@ function ymd(off) { const d = new Date(Date.now() + off * 86400000); return d.ge
 (async () => {
   const srv = await serve(); const base = 'http://127.0.0.1:' + srv.address().port + '/index.html';
   const browser = await chromium.launch();
-  for (const lang of ['en', 'es']) {
+  for (const lang of LANGS) {
     for (const dev of DEVICES) {
       const dir = path.join(OUT, lang, dev.id); fs.mkdirSync(dir, { recursive: true });
       const ctx = await browser.newContext({ viewport: { width: dev.w, height: dev.h }, deviceScaleFactor: dev.scale, isMobile: true, hasTouch: true, userAgent: UA[dev.ua], reducedMotion: 'reduce', colorScheme: 'light' });
@@ -82,7 +94,7 @@ function ymd(off) { const d = new Date(Date.now() + off * 86400000); return d.ge
         stories: [{ id: 's1', title: S.story.title, s: S.story.s, t: '', a: S.story.a, r: S.story.r, types: ['upset', 'above'] }],
         seen: {}, history: {} };
       // look exactly like the phone app (the app is drawn ~12% smaller than the website)
-      await ctx.addInitScript((ua) => { const add = () => document.documentElement.classList.add('native', 'native-ios');
+      await ctx.addInitScript((ua) => { const add = () => { document.documentElement.classList.add('native'); if (!/android/.test(ua)) document.documentElement.classList.add('native-ios'); };
         if (document.documentElement) add(); document.addEventListener('DOMContentLoaded', add); }, dev.ua);
       await ctx.addInitScript(([lang, st]) => {
         try { if (sessionStorage.getItem('seeded')) return; sessionStorage.setItem('seeded', '1');
@@ -106,6 +118,13 @@ function ymd(off) { const d = new Date(Date.now() + off * 86400000); return d.ge
       }, [ymd(-2), ymd(-1)]);
       await p.reload({ waitUntil: 'networkidle' }); await p.evaluate(() => document.fonts && document.fonts.ready); await p.waitForTimeout(300);
       let n = 0; const shot = async (name) => { await p.waitForTimeout(250); await p.screenshot({ path: path.join(dir, String(++n).padStart(2, '0') + '-' + name + '.png') }); };
+      // land on a question the sample answer fits (the question of the day changes daily)
+      for (let i = 0; i < 40; i++) {
+        const q = await p.textContent('#qText');
+        if (/above and beyond|más allá|turned around an upset|cliente molesto/i.test(q || '')) break;
+        await p.click('#btnNext'); await p.waitForTimeout(60);
+      }
+      await p.fill('#answer', ''); await p.evaluate(() => window.scrollTo(0, 0));
       // 1. Question of the day, answer typed in
       await p.fill('#answer', S.answer); await p.evaluate(() => document.activeElement.blur());
       await p.evaluate(() => window.scrollTo(0, 0)); await shot('practice');

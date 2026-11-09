@@ -1603,14 +1603,22 @@ $('feedback').addEventListener('click',function(e){
 var TTS=(typeof window.speechSynthesis!=='undefined'&&typeof window.SpeechSynthesisUtterance!=='undefined')?window.speechSynthesis:null,ttsBtn=null;
 function ttsVoice(){if(!TTS)return null;var v=[];try{v=TTS.getVoices()||[];}catch(e){}var L=String(I18N.speech||'en-US').toLowerCase(),base=L.slice(0,2);
   var norm=function(x){return String(x.lang||'').toLowerCase().replace('_','-');};
-  return v.filter(function(x){return norm(x)===L;})[0]||v.filter(function(x){return norm(x).indexOf(base)===0;})[0]||null;}
+  /* Pick the most natural voice on the phone: Premium, then Enhanced, then the normal default,
+     never the novelty or robotic ones. Language match comes first. */
+  var score=function(x){var l=norm(x),id=(String(x.name||'')+' '+String(x.voiceURI||'')).toLowerCase(),n=0;
+    if(l===L)n+=100;else if(l.indexOf(base)===0)n+=50+(/-(us|mx|419)$/.test(l)?5:0);else return -1;
+    if(/premium/.test(id))n+=40;else if(/enhanced|neural|natural/.test(id))n+=30;else if(/siri/.test(id))n+=25;
+    if(/eloquence|novelty|speech\.synthesis\.voice\.|grandma|grandpa|rocko|shelley|sandy|eddy|flo\b|reed\b|albert|bad news|bahh|bells|boing|bubbles|cellos|wobble|jester|organ|trinoids|whisper|zarvox|superstar|ralph|fred\b|junior|kathy/.test(id))n-=60;
+    if(x.localService!==false)n+=3;if(x['default'])n+=2;return n;};
+  var best=null,bs=-1;for(var i=0;i<v.length;i++){var sc=score(v[i]);if(sc>bs){bs=sc;best=v[i];}}
+  return bs>=0?best:null;}
 function speakBtn(attr){return ttsVoice()?'<button type="button" class="speak" '+attr+' aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><span>Hear it</span></button>':'';}
 function ttsOff(){if(ttsBtn){ttsBtn.classList.remove('on');ttsBtn.setAttribute('aria-pressed','false');var sp=ttsBtn.querySelector('span');if(sp)sp.textContent=T('Hear it');}ttsBtn=null;}
 function ttsStop(){if(TTS){try{TTS.cancel();}catch(e){}}ttsOff();}
 function speak(text,btn){
   if(!TTS)return;var again=btn&&btn===ttsBtn;ttsStop();if(again)return;
   var v=ttsVoice();if(!v||!text)return;
-  var u=new SpeechSynthesisUtterance(String(text).replace(/\[([^\]]+)\]/g,'$1'));u.voice=v;u.lang=v.lang;u.rate=0.95;
+  var u=new SpeechSynthesisUtterance(String(text).replace(/\[([^\]]+)\]/g,'$1'));u.voice=v;u.lang=v.lang;u.rate=0.9;u.pitch=1;
   u.onend=u.onerror=function(){if(ttsBtn===btn)ttsOff();};
   ttsBtn=btn;if(btn){btn.classList.add('on');btn.setAttribute('aria-pressed','true');var sp=btn.querySelector('span');if(sp)sp.textContent=T('Stop');}
   try{TTS.speak(u);}catch(e){ttsOff();}
