@@ -1620,7 +1620,9 @@ function ttsVoice(){if(!TTS)return null;var v=[];try{v=TTS.getVoices()||[];}catc
   return bs>=0?best:null;}
 /* iPhone: speak with Apple's own engine (app/ios-native/TakeoffSpeechPlugin.swift), which can use the
    Premium and Enhanced voices the web voices can't reach. Falls back to web speech if it's missing. */
-var NSPEECH=null,nspeechOk=true;
+var NSPEECH=null,nspeechOk=true,ttsInfo='';
+try{ttsInfo=localStorage.getItem('cft-tts')||'';}catch(e){}
+function noteTts(t){ttsInfo=t;try{localStorage.setItem('cft-tts',t);}catch(e){}}
 if(NATIVE&&PLATFORM==='ios'&&typeof CAP.registerPlugin==='function'){try{NSPEECH=CAP.registerPlugin('TakeoffSpeech');}catch(e){NSPEECH=null;}}
 function canSpeak(){return !!((NSPEECH&&nspeechOk)||ttsVoice());}
 function speakBtn(attr){return canSpeak()?'<button type="button" class="speak" '+attr+' aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><span>Hear it</span></button>':'';}
@@ -1631,7 +1633,7 @@ function webSpeak(say,btn){
   var v=ttsVoice();if(!TTS||!v){ttsOff();return;}
   var u=new SpeechSynthesisUtterance(say);u.voice=v;u.lang=v.lang;u.rate=0.9;u.pitch=1;
   u.onend=u.onerror=function(){if(ttsBtn===btn)ttsOff();};
-  ttsOn(btn);try{TTS.speak(u);}catch(e){ttsOff();}
+  ttsOn(btn);noteTts((NSPEECH?'Apple voice failed, web voice: ':'Web voice: ')+v.name);try{TTS.speak(u);}catch(e){ttsOff();}
 }
 function speak(text,btn){
   var again=btn&&btn===ttsBtn;ttsStop();if(again||!text)return;
@@ -1639,7 +1641,7 @@ function speak(text,btn){
   if(NSPEECH&&nspeechOk){
     ttsOn(btn);
     var p;try{p=NSPEECH.speak({text:say,lang:String(I18N.speech||'en-US'),rate:0.9});}catch(e){p=Promise.reject(e);}
-    p.then(function(){if(ttsBtn===btn)ttsOff();},function(){nspeechOk=false;if(ttsBtn===btn){ttsOff();webSpeak(say,btn);}});
+    p.then(function(r){if(r&&r.voice)noteTts('Apple voice: '+r.voice+' ('+r.quality+')'+(r.retried?', retried with normal voice':''));if(ttsBtn===btn)ttsOff();},function(){nspeechOk=false;if(ttsBtn===btn){ttsOff();webSpeak(say,btn);}});
     return;
   }
   webSpeak(say,btn);
@@ -2268,7 +2270,7 @@ function openDeck(){
     +deckLink('privacy.html','Privacy Policy','privacy')
     +deckLink('terms.html','Terms of Service','terms')
     +deckItem('reset','Reset my progress','reset','danger')
-    +'<p class="dabout"><span class="dquote">'+esc(T('Airline jobs are some of the most competitive jobs out there. I built this app to give you a leg up.'))+'</span><span class="dsig">'+esc(T('— Susan, gate agent at Phoenix Sky Harbor'))+'</span>'+esc(T('Every question and tip comes from real airport experience.'))+(ver?'<br>'+esc(ver):'')+'</p>'
+    +'<p class="dabout"><span class="dquote">'+esc(T('Airline jobs are some of the most competitive jobs out there. I built this app to give you a leg up.'))+'</span><span class="dsig">'+esc(T('— Susan, gate agent at Phoenix Sky Harbor'))+'</span>'+esc(T('Every question and tip comes from real airport experience.'))+(ver?'<br>'+esc(ver):'')+(ttsInfo?'<br><span class="small">Hear it: '+esc(ttsInfo)+'</span>':'')+'</p>'
   +'</div>';
   openSheet(T('Flight Deck'),h,deckClick);
 }
