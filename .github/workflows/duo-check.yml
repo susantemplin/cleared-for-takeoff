@@ -48,10 +48,12 @@ jobs:
           echo "== Runtimes =="
           xcrun simctl list runtimes
           DT=$(xcrun simctl list devicetypes | grep -iE "duo" | head -1 | sed -E 's/.*\((com\.apple[^)]*)\).*/\1/')
-          RT=$(xcrun simctl list runtimes | grep -i "iOS 27" | tail -1 | sed -E 's/.* - (com\.apple[^ ]*).*/\1/')
-          echo "Device type: $DT  Runtime: $RT"
           if [ -z "$DT" ]; then echo "::error::No iPhone Duo simulator in this Xcode"; xcrun simctl list devicetypes; exit 1; fi
-          U=$(xcrun simctl create "Duo check" "$DT" "$RT")
+          U=""
+          for RT in $(xcrun simctl list runtimes | grep -i "^iOS 27" | sed -E 's/.* - (com\.apple[^ ]*).*/\1/' | sort -r); do
+            U=$(xcrun simctl create "Duo check" "$DT" "$RT" 2>/dev/null) && { echo "Device type: $DT  Runtime: $RT"; break; } || U=""
+          done
+          [ -n "$U" ] || { echo "::error::No iOS runtime fits the iPhone Duo"; exit 1; }
           xcrun simctl boot "$U"; xcrun simctl bootstatus "$U" -b
           echo "== simctl commands about folding/posture =="
           xcrun simctl help 2>&1 | grep -iE "fold|posture|hinge|display" || true
